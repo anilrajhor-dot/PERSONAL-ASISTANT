@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v1.2</title>
+<title>RBI Regulatory Assistant v1.3</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -27,7 +27,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v1.0</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v1.3</div></div></div>
  <nav>
   <button class="active" data-page="ask">Ask RBI</button>
   <button data-page="library">Knowledge Library</button>
@@ -88,6 +88,11 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
   <h3>Model</h3>
   <select id="model"><option value="gemini-3.7-flash">Gemini 3.7 Flash</option><option value="gemini-3.6-flash">Gemini 3.6 Flash</option><option value="gemini-2.5-flash">Gemini 2.5 Flash</option></select>
  </div>
+ <div class="card" id="versionCard">
+  <h2>About this app</h2>
+  <div class="hint"><strong>RBI Regulatory Assistant v1.3</strong><br>
+  Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
+ </div>
  <div class="card">
   <h2>Strict source policy</h2>
   <label class="check"><input type="checkbox" checked disabled> No internet search by the app</label>
@@ -97,13 +102,13 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v1.2 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v1.3 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
-const DB_NAME='rbiAssistantV1', STORE='docs';
+const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v1.2. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v1.3. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -143,7 +148,7 @@ async function removeDoc(id){await delDoc(id);renderList()}
 function fmt(n){return n<1024?(n+' B'):n<1048576?((n/1024).toFixed(1)+' KB'):((n/1048576).toFixed(1)+' MB')}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function uploadFiles(files){for(const f of files){if(f.size>50*1024*1024 && (f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'))){alert(f.name+' is over 50 MB and cannot be sent inline in v1.');continue}await addDoc(await fileToDoc(f))}await renderList()}
-function getKey(){return localStorage.getItem('rbiGeminiKey')||''}
+function getKey(){return localStorage.getItem('rbiGeminiKeyV13')||''}
 function setStatus(t,cls=''){ $('status').textContent=t;$('status').className='status '+cls}
 async function ask(){
  const q=$('question').value.trim(), docs=await allDocs(), mode=window.answerMode||'auto';
@@ -164,11 +169,11 @@ async function ask(){
    hits.sort((a,b)=>b.score-a.score);
    $('answer').textContent=hits.length
     ? 'DOCUMENT SEARCH — NO AI\n\n'+hits.slice(0,5).map((h,i)=>`Match ${i+1} — ${h.d.name}\n${h.snip}`).join('\n\n---\n\n')
-    : 'No matching text was found in the locally searchable material.\n\nPDF search is not yet included in this local-only fallback; use AI mode for PDF material in v1.2.';
+    : 'No matching text was found in the locally searchable material.\n\nPDF search is not yet included in this local-only fallback; use AI mode for PDF material in v1.3.';
    setStatus('Answer produced from local document search — no Gemini used.','ok');
   }else{
    const key=getKey();if(!key){setStatus('No Gemini key. Use Document Search or add a key in Settings.','err');return}
-   const system=`You are RBI Regulatory Assistant v1.2. Use ONLY the reference files supplied below. Do not use internet, model memory, general RBI knowledge, assumptions, or outside sources. If the files do not establish the answer, say: "I could not find sufficient information to answer this question in the material provided." Never guess. Check dates, amendments and conflicts. Distinguish regulatory fact, interpretation and practical implication. Never invent citations. Answer in the user's language when appropriate. Include ANSWER, EXPLANATION, RELEVANT PROVISION, SOURCE, EVIDENCE USED, PRACTICAL IMPLICATION and CONFIDENCE.`;
+   const system=`You are RBI Regulatory Assistant v1.3. Use ONLY the reference files supplied below. Do not use internet, model memory, general RBI knowledge, assumptions, or outside sources. If the files do not establish the answer, say: "I could not find sufficient information to answer this question in the material provided." Never guess. Check dates, amendments and conflicts. Distinguish regulatory fact, interpretation and practical implication. Never invent citations. Answer in the user's language when appropriate. Include ANSWER, EXPLANATION, RELEVANT PROVISION, SOURCE, EVIDENCE USED, PRACTICAL IMPLICATION and CONFIDENCE.`;
    const parts=[{text:'USER QUESTION:\n'+q+'\n\nREFERENCE FILES. Use only these.'},...docs.map(d=>({inline_data:{mime_type:d.type,data:d.data}}))];
    const model=$('model').value,url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
    const body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts}],generationConfig:{maxOutputTokens:3000}};
@@ -181,8 +186,8 @@ async function ask(){
 }
 $('askBtn').onclick=ask;
 $('clearBtn').onclick=()=>{$('question').value='';$('answerCard').style.display='none';setStatus('')};
-$('saveKey').onclick=()=>{const k=$('apiKey').value.trim();if(!k){$('keyStatus').textContent='Enter a key first.';return}localStorage.setItem('rbiGeminiKey',k);$('keyStatus').textContent='API key saved locally on this browser.';$('apiKey').value='';};
-$('removeKey').onclick=()=>{localStorage.removeItem('rbiGeminiKey');$('keyStatus').textContent='API key removed.'};
+$('saveKey').onclick=()=>{const k=$('apiKey').value.trim();if(!k){$('keyStatus').textContent='Enter a key first.';return}localStorage.setItem('rbiGeminiKeyV13',k);$('keyStatus').textContent='API key saved locally on this browser.';$('apiKey').value='';};
+$('removeKey').onclick=()=>{localStorage.removeItem('rbiGeminiKeyV13');$('keyStatus').textContent='API key removed.'};
 $('drop').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=e=>uploadFiles(e.target.files);
 $('clearLibrary').onclick=async()=>{if(confirm('Delete all locally stored reference material?')){await clearDocs();renderList()}};
