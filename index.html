@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v1.4</title>
+<title>RBI Regulatory Assistant v1.5</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -27,7 +27,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v1.4</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v1.5</div></div></div>
  <nav>
   <button class="active" data-page="ask">Ask RBI</button>
   <button data-page="library">Knowledge Library</button>
@@ -79,7 +79,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v1.4 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v1.5 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
@@ -90,7 +90,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v1.4</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v1.5</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -102,13 +102,13 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v1.4 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v1.5 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v1.4. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v1.5. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -169,11 +169,11 @@ async function ask(){
    hits.sort((a,b)=>b.score-a.score);
    $('answer').textContent=hits.length
     ? 'DOCUMENT SEARCH — NO AI\n\n'+hits.slice(0,5).map((h,i)=>`Match ${i+1} — ${h.d.name}\n${h.snip}`).join('\n\n---\n\n')
-    : 'No matching text was found in the locally searchable material.\n\nPDF search is not yet included in this local-only fallback; use AI mode for PDF material in v1.4.';
+    : 'No matching text was found in the locally searchable material.\n\nPDF search is not yet included in this local-only fallback; use AI mode for PDF material in v1.5.';
    setStatus('Answer produced from local document search — no Gemini used.','ok');
   }else{
    const key=await getKey();if(!key){setStatus('No Gemini key saved. Use Document Search or add a key in Settings.','err');return}
-   const system=`You are RBI Regulatory Assistant v1.4. Use ONLY the reference files supplied below. Do not use internet, model memory, general RBI knowledge, assumptions, or outside sources. If the files do not establish the answer, say: "I could not find sufficient information to answer this question in the material provided." Never guess. Check dates, amendments and conflicts. Distinguish regulatory fact, interpretation and practical implication. Never invent citations. Answer in the user's language when appropriate. Include ANSWER, EXPLANATION, RELEVANT PROVISION, SOURCE, EVIDENCE USED, PRACTICAL IMPLICATION and CONFIDENCE.`;
+   const system=`You are RBI Regulatory Assistant v1.5. Use ONLY the reference files supplied below. Do not use internet, model memory, general RBI knowledge, assumptions, or outside sources. If the files do not establish the answer, say: "I could not find sufficient information to answer this question in the material provided." Never guess. Check dates, amendments and conflicts. Distinguish regulatory fact, interpretation and practical implication. Never invent citations. Answer in the user's language when appropriate. Include ANSWER, EXPLANATION, RELEVANT PROVISION, SOURCE, EVIDENCE USED, PRACTICAL IMPLICATION and CONFIDENCE.`;
    const parts=[{text:'USER QUESTION:\n'+q+'\n\nREFERENCE FILES. Use only these.'},...docs.map(d=>({inline_data:{mime_type:d.type,data:d.data}}))];
    const model=$('model').value,url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
    const body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts}],generationConfig:{maxOutputTokens:3000}};
@@ -199,7 +199,7 @@ $('saveKey').onclick=async()=>{
   $('keyStatus').textContent='Could not save key: '+e.message;
   $('keyStatus').className='status err';
  }
-};if(!k){$('keyStatus').textContent='Enter a key first.';return}localStorage.setItem('rbiGeminiKeyV13',k);$('keyStatus').textContent='API key saved locally on this browser.';$('apiKey').value='';};
+};
 $('removeKey').onclick=async()=>{
  try{
   await removeSetting('geminiApiKeyV14');
@@ -210,7 +210,7 @@ $('removeKey').onclick=async()=>{
   $('keyStatus').textContent='Could not remove key: '+e.message;
   $('keyStatus').className='status err';
  }
-};$('keyStatus').textContent='API key removed.'};
+};
 $('drop').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=e=>uploadFiles(e.target.files);
 $('clearLibrary').onclick=async()=>{if(confirm('Delete all locally stored reference material?')){await clearDocs();renderList()}};
