@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v1.7</title>
+<title>RBI Regulatory Assistant v1.8</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -27,7 +27,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v1.7</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v1.8</div></div></div>
  <nav>
   <button type="button" class="active" data-page="ask">Ask RBI</button>
   <button type="button" data-page="library">Knowledge Library</button>
@@ -79,7 +79,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v1.7 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v1.8 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
@@ -90,7 +90,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v1.7</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v1.8</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -102,13 +102,13 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v1.7 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v1.8 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v1.7. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v1.8. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -151,13 +151,14 @@ async function uploadFiles(files){for(const f of files){if(f.size>50*1024*1024 &
 async function getKey(){return await loadSetting('geminiApiKeyV14')}
 function setStatus(t,cls=''){ $('status').textContent=t;$('status').className='status '+cls}
 
-const SETTINGS_DB='rbiAssistantSettingsV16';
+
+const SETTINGS_DB='rbiAssistantSettingsV18';
 let settingsDbPromise=null;
 function openSettingsDB(){
   if(settingsDbPromise) return settingsDbPromise;
   settingsDbPromise=new Promise((resolve,reject)=>{
     const req=indexedDB.open(SETTINGS_DB,1);
-    req.onupgradeneeded=()=>{ if(!req.result.objectStoreNames.contains('settings')) req.result.createObjectStore('settings',{keyPath:'key'}); };
+    req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('settings'))req.result.createObjectStore('settings',{keyPath:'key'});};
     req.onsuccess=()=>resolve(req.result);
     req.onerror=()=>reject(req.error||new Error('Could not open settings storage'));
   });
@@ -167,7 +168,7 @@ async function saveSetting(key,value){
   const d=await openSettingsDB();
   return new Promise((resolve,reject)=>{
     const tx=d.transaction('settings','readwrite');
-    tx.objectStore('settings').put({key:key,value:value,updated:new Date().toISOString()});
+    tx.objectStore('settings').put({key,value,updated:new Date().toISOString()});
     tx.oncomplete=()=>resolve();
     tx.onerror=()=>reject(tx.error||new Error('Could not save setting'));
     tx.onabort=()=>reject(tx.error||new Error('Could not save setting'));
@@ -178,7 +179,7 @@ async function loadSetting(key){
   return new Promise((resolve,reject)=>{
     const tx=d.transaction('settings','readonly');
     const req=tx.objectStore('settings').get(key);
-    req.onsuccess=()=>resolve(req.result ? req.result.value : '');
+    req.onsuccess=()=>resolve(req.result?.value||'');
     req.onerror=()=>reject(req.error||new Error('Could not read setting'));
   });
 }
@@ -192,7 +193,7 @@ async function removeSetting(key){
     tx.onabort=()=>reject(tx.error||new Error('Could not remove setting'));
   });
 }
-async function getKey(){ return await loadSetting('geminiApiKeyV16'); }
+async function getKey(){return await loadSetting('geminiApiKeyV18');}
 
 async function ask(){
  const q=$('question').value.trim(), docs=await allDocs(), mode=window.answerMode||'auto';
@@ -213,11 +214,11 @@ async function ask(){
    hits.sort((a,b)=>b.score-a.score);
    $('answer').textContent=hits.length
     ? 'DOCUMENT SEARCH — NO AI\n\n'+hits.slice(0,5).map((h,i)=>`Match ${i+1} — ${h.d.name}\n${h.snip}`).join('\n\n---\n\n')
-    : 'No matching text was found in the locally searchable material.\n\nPDF search is not yet included in this local-only fallback; use AI mode for PDF material in v1.7.';
+    : 'No matching text was found in the locally searchable material.\n\nPDF search is not yet included in this local-only fallback; use AI mode for PDF material in v1.8.';
    setStatus('Answer produced from local document search — no Gemini used.','ok');
   }else{
    const key=await getKey();if(!key){setStatus('No Gemini key saved. Use Document Search or add a key in Settings.','err');return}
-   const system=`You are RBI Regulatory Assistant v1.7. Use ONLY the reference files supplied below. Do not use internet, model memory, general RBI knowledge, assumptions, or outside sources. If the files do not establish the answer, say: "I could not find sufficient information to answer this question in the material provided." Never guess. Check dates, amendments and conflicts. Distinguish regulatory fact, interpretation and practical implication. Never invent citations. Answer in the user's language when appropriate. Include ANSWER, EXPLANATION, RELEVANT PROVISION, SOURCE, EVIDENCE USED, PRACTICAL IMPLICATION and CONFIDENCE.`;
+   const system=`You are RBI Regulatory Assistant v1.8. Use ONLY the reference files supplied below. Do not use internet, model memory, general RBI knowledge, assumptions, or outside sources. If the files do not establish the answer, say: "I could not find sufficient information to answer this question in the material provided." Never guess. Check dates, amendments and conflicts. Distinguish regulatory fact, interpretation and practical implication. Never invent citations. Answer in the user's language when appropriate. Include ANSWER, EXPLANATION, RELEVANT PROVISION, SOURCE, EVIDENCE USED, PRACTICAL IMPLICATION and CONFIDENCE.`;
    const parts=[{text:'USER QUESTION:\n'+q+'\n\nREFERENCE FILES. Use only these.'},...docs.map(d=>({inline_data:{mime_type:d.type,data:d.data}}))];
    const model=$('model').value,url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
    const body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts}],generationConfig:{maxOutputTokens:3000}};
@@ -230,11 +231,12 @@ async function ask(){
 }
 $('askBtn').onclick=ask;
 $('clearBtn').onclick=()=>{$('question').value='';$('answerCard').style.display='none';setStatus('')};
+
 $('saveKey').onclick=async()=>{
  const k=$('apiKey').value.trim();
  if(!k){$('keyStatus').textContent='Enter a key first.';$('keyStatus').className='status err';return}
  try{
-  await saveSetting('geminiApiKeyV16',k);
+  await saveSetting('geminiApiKeyV18',k);
   $('keyStatus').textContent='API key saved ✓';
   $('keyStatus').className='status ok';
   $('apiKey').value='';
@@ -244,21 +246,10 @@ $('saveKey').onclick=async()=>{
   $('keyStatus').className='status err';
  }
 };
- if(!k){$('keyStatus').textContent='Enter a key first.';$('keyStatus').className='status err';return}
- try{
-  await saveSetting('geminiApiKeyV14',k);
-  $('keyStatus').textContent='API key saved ✓ (stored in this browser)';
-  $('keyStatus').className='status ok';
-  $('apiKey').value='';
-  $('apiKey').placeholder='API key saved — enter a new key to replace it';
- }catch(e){
-  $('keyStatus').textContent='Could not save key: '+e.message;
-  $('keyStatus').className='status err';
- }
-};
+
 $('removeKey').onclick=async()=>{
  try{
-  await removeSetting('geminiApiKeyV16');
+  await removeSetting('geminiApiKeyV18');
   $('keyStatus').textContent='API key removed.';
   $('keyStatus').className='status';
   $('apiKey').value='';
@@ -268,14 +259,7 @@ $('removeKey').onclick=async()=>{
   $('keyStatus').className='status err';
  }
 };
-  $('keyStatus').textContent='API key removed.';
-  $('keyStatus').className='status';
-  $('apiKey').placeholder='Paste your Gemini API key';
- }catch(e){
-  $('keyStatus').textContent='Could not remove key: '+e.message;
-  $('keyStatus').className='status err';
- }
-};
+
 $('drop').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=e=>uploadFiles(e.target.files);
 $('clearLibrary').onclick=async()=>{if(confirm('Delete all locally stored reference material?')){await clearDocs();renderList()}};
@@ -287,7 +271,6 @@ function showPage(pageId){
  const tabs=document.querySelectorAll('nav button[data-page]');
  pages.forEach(p=>p.classList.toggle('active',p.id===pageId));
  tabs.forEach(t=>t.classList.toggle('active',t.dataset.page===pageId));
- window.scrollTo(0,0);
 }
 document.addEventListener('click',function(e){
  const b=e.target.closest('nav button[data-page]');
@@ -305,21 +288,27 @@ getKey().then(k=>{
 window.answerMode='auto';
 document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('.mode').forEach(x=>{x.classList.remove('active');x.classList.remove('secondary');x.classList.add('ghost')});
- b.classList.add('active');b.classList.remove('ghost');b.classList.add('secondary');window.answerMode=b.dataset.mode;
+ b.classList.add('active');b.classList.remove('ghost');b.classList.add('secondary');
+ window.answerMode=b.dataset.mode;
 });
 $('testKey').onclick=async()=>{
- const key=await getKey(); if(!key){$('keyStatus').textContent='No API key saved.';return}
+ const key=await getKey();
+ if(!key){$('keyStatus').textContent='No API key saved.';$('keyStatus').className='status err';return}
  $('keyStatus').textContent='Testing…';
  try{
   const model=$('model').value;
   const u='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
   const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'Reply only with: CONNECTION OK'}]}],generationConfig:{maxOutputTokens:20}})});
   const j=await r.json();
-  if(!r.ok) throw new Error((j?.error?.message||'API error')+' [HTTP '+r.status+']');
+  if(!r.ok)throw new Error((j?.error?.message||'API error')+' [HTTP '+r.status+']');
   $('keyStatus').textContent='Connection successful. Gemini is responding.';
- }catch(e){$('keyStatus').textContent='Connection failed: '+e.message}
+  $('keyStatus').className='status ok';
+ }catch(e){
+  $('keyStatus').textContent='Connection failed: '+e.message;
+  $('keyStatus').className='status err';
+ }
 };
-openDB().then(renderList); showPage('ask');
+openDB().then(renderList); showPage('ask'); showPage('ask');
 </script>
 </body>
 </html>
