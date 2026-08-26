@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v2.9</title>
+<title>RBI Regulatory Assistant v3.0</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -23,6 +23,11 @@ textarea,input,select{width:100%;border:1px solid var(--line);border-radius:12px
 footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 .check{display:flex;gap:8px;align-items:flex-start;font-size:13px}.check input{width:auto;margin-top:3px}
 @media(max-width:600px){main{padding:12px}.card{padding:14px}.title{font-size:18px}header{padding:16px 13px}}
+
+.ai-section{margin:18px 0 22px;padding:14px 16px;border:1px solid #dbe5f4;border-radius:14px;background:#fbfdff}
+.ai-section-title{font-weight:800;letter-spacing:.02em;margin-bottom:8px;color:#174a96}
+.ai-section-body{line-height:1.65}
+.ai-text{line-height:1.65}
 </style>
 <script>
 window.PDFJS_READY=(async function(){
@@ -46,7 +51,7 @@ window.TESSERACT_READY=(async function(){
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v2.9</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.0</div></div></div>
  <nav>
   <button type="button" class="active" data-page="ask">Ask RBI</button>
   <button type="button" data-page="library">Knowledge Library</button>
@@ -64,7 +69,7 @@ window.TESSERACT_READY=(async function(){
    <button class="btn ghost mode" data-mode="ai">🔵 AI Regulatory Answer</button>
    <button class="btn ghost mode" data-mode="search">🟢 Document Search</button>
   </div>
-  <div class="hint"><strong>Source evidence:</strong> each result shows the original document name and PDF page.</div><div class="hint"><strong>Evidence-first:</strong> matching passages are retrieved from your uploaded material before an AI answer is generated.</div><div class="hint">Answers are instructed to use only the documents currently stored in this app. If the material does not establish an answer, the assistant must say so rather than guess.</div>
+  <div class="hint"><strong>Source evidence:</strong> each result shows the original document name and PDF page.</div><div class="hint"><strong>Evidence-first:</strong> matching passages are retrieved from your uploaded material before an AI answer is generated.</div><div class="hint"><strong>Strict Evidence Lock:</strong> the AI cannot fill gaps from outside knowledge. Answers are instructed to use only the documents currently stored in this app. If the material does not establish an answer, the assistant must say so rather than guess.</div>
   <textarea id="question" placeholder="Example: What is the RBI requirement regarding ...?"></textarea>
   <div class="row" style="margin-top:10px">
    <button class="btn primary" id="askBtn">Ask RBI</button>
@@ -103,7 +108,7 @@ window.TESSERACT_READY=(async function(){
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v2.9 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.0 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. It is retained when you move between app versions on this device. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
@@ -114,7 +119,7 @@ window.TESSERACT_READY=(async function(){
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v2.9</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v3.0</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -126,13 +131,13 @@ window.TESSERACT_READY=(async function(){
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v2.9 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v3.0 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v2.9. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v3.0. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -366,6 +371,20 @@ async function fetchWithTimeout(url,options={},timeoutMs=25000){
   throw e;
  }finally{clearTimeout(timer)}
 }
+function escHtml(t){
+ return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function renderAIAnswer(text){
+ const safe=escHtml(text).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+ const sections=safe.split(/\n(?=(?:ANSWER|REGULATORY POSITION|SOURCE|EVIDENCE|PRACTICAL IMPLICATION|CONFIDENCE)\s*:)/i);
+ return sections.map(part=>{
+  const m=part.match(/^(ANSWER|REGULATORY POSITION|SOURCE|EVIDENCE|PRACTICAL IMPLICATION|CONFIDENCE)\s*:\s*([\s\S]*)$/i);
+  if(!m) return '<div class="ai-text">'+part.replace(/\n/g,'<br>')+'</div>';
+  return '<div class="ai-section"><div class="ai-section-title">'+m[1].toUpperCase()+
+         '</div><div class="ai-section-body">'+m[2].trim().replace(/\n/g,'<br>')+
+         '</div></div>';
+ }).join('');
+}
 async function ask(){
  const q=$('question').value.trim(),docs=await allDocs(),mode=window.answerMode||'auto';
  if(!q){setStatus('Please enter a question.','err');return}
@@ -395,14 +414,52 @@ async function ask(){
 
   const key=await getKey();
   if(!key){setStatus('No Gemini key saved. Use Document Search or add a key in Settings.','err');return}
-  const system=`You are an evidence-bound RBI Regulatory Assistant. Answer ONLY from the evidence passages supplied. Do not use model memory, general RBI knowledge, internet information or assumptions. If evidence does not establish the answer, say: "I could not find sufficient information to answer this question in the material provided." Never invent citations, quotations, page numbers or regulatory requirements. If evidence conflicts, identify the conflict. Return ANSWER, EXPLANATION, EVIDENCE USED, SOURCE, PRACTICAL IMPLICATION, CONFIDENCE.`;
+  const system=`You are a strict document-grounded regulatory assistant.
+
+SOURCE LOCK — ABSOLUTE RULE:
+1. Use ONLY the supplied evidence extracted from documents uploaded by the user.
+2. Do NOT use your general knowledge, training knowledge, memory, internet, assumptions or guesses to fill gaps.
+3. Every substantive regulatory statement must be supported by the supplied evidence.
+4. If the supplied evidence does not establish the answer, say exactly: "Not found in the supplied material."
+5. If evidence is incomplete, say what is established and clearly identify what is not established.
+6. If supplied documents conflict, identify the conflict, name the relevant sources/pages, and do not choose one silently.
+7. Never invent a document name, page number, section, paragraph, quotation or citation.
+8. Do not claim that a provision is current, amended, superseded or applicable on a date unless the supplied evidence establishes it.
+9. Distinguish clearly between what the document states and any practical interpretation.
+10. Keep the answer concise but sufficiently clear for a bank/financial-inclusion field professional.
+
+OUTPUT FORMAT:
+ANSWER:
+Give the direct answer first.
+
+REGULATORY POSITION:
+State the relevant requirement strictly from the supplied evidence.
+
+SOURCE:
+Give document name, page and section/paragraph only when established by the evidence.
+
+EVIDENCE:
+Quote or closely reproduce only the relevant supplied passage, without adding unsupported text.
+
+PRACTICAL IMPLICATION:
+Explain the practical meaning only to the extent supported by the supplied evidence. If not established, say so.
+
+CONFIDENCE:
+High — evidence directly and clearly establishes the answer.
+Moderate — evidence supports the answer but has some limitation.
+Insufficient — the supplied material does not establish the answer.
+
+FINAL CHECK:
+Before responding, verify that every regulatory conclusion is supported by the supplied evidence. If not, replace the unsupported conclusion with "Not found in the supplied material."`;
+
   const model=$('model').value;
   const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent';
   const body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts:[{text:`USER QUESTION:\n${q}\n\nSUPPLIED EVIDENCE ONLY:\n${evidenceText}`}]}],generationConfig:{maxOutputTokens:3000}};
   $('answer').textContent='Generating answer from retrieved evidence…';
   const r=await fetchWithTimeout(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body)}),j=await r.json();
   if(!r.ok)throw new Error((j?.error?.message||'Gemini API error')+' [HTTP '+r.status+']');
-  $('answer').textContent=j?.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'No answer returned.';
+  const rawAnswer=j?.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'No answer returned.';
+  $('answer').innerHTML=renderAIAnswer(rawAnswer);
   setStatus('AI answer generated from retrieved evidence only.','ok');
  }catch(e){$('answer').textContent='AI request failed: '+e.message;setStatus(e.message,'err')}finally{$('askBtn').disabled=false}
 }
