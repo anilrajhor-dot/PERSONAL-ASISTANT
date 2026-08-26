@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.11</title>
+<title>RBI Regulatory Assistant v3.12</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
@@ -22,7 +22,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.11</div></div></div>
+  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.12</div></div></div>
   <nav>
     <button class="tab active" data-page="ask">Ask RBI</button>
     <button class="tab" data-page="library">Knowledge Library</button>
@@ -40,7 +40,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
       <button class="mode" data-mode="ai">🔵 AI Regulatory Answer</button>
       <button class="mode" data-mode="search">🟢 Document Search</button>
     </div>
-    <div class="hint" style="margin-top:12px">
+    <div class="hint" style="margin-top:12px"><b>Auto:</b> uses direct document evidence for simple factual questions and Gemini only when interpretation, comparison or calculation is useful.</div><div class="hint" style="margin-top:12px">
       <b>Precision Answer Engine:</b> direct answer first, essential condition second, exact source/page when established.
       <br><b>Strict Evidence Lock:</b> answers use only documents stored in this app. Unsupported facts are not guessed.
     </div>
@@ -101,12 +101,12 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.11</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.12</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.11 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.12 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
@@ -210,7 +210,18 @@ $("askBtn").onclick=async()=>{
     const hits=retrieve(q);
     if(state.mode==="search"){const r=localAnswer(q,hits);renderResult(r);$("askStatus").textContent="Evidence retrieved locally — no Gemini used."}
     else if(state.mode==="ai"){if(!hits.length){renderResult({answer:"Not found in supplied material.",source:null,evidence:[]});$("askStatus").textContent="No supporting evidence found."}else{const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="AI answer generated from retrieved evidence only."}}
-    else {if(hits.length&&localStorage.getItem(KEYS.key)){const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="AI answer generated from retrieved evidence only."}else{const r=localAnswer(q,hits);renderResult(r);$("askStatus").textContent="Evidence retrieved locally — no Gemini used."}}
+    else {
+      const simple=/\b(what is|what are|how many|how much|what rate|rate of interest|maximum|minimum|limit|period|tenure|eligib(?:le|ility)|required|members?)\b/i.test(q);
+      const needsAI=/\b(why|explain|compare|difference|whether|can|calculate|work out|how does|interpret|implication|applicable|conditions?)\b/i.test(q);
+      if(hits.length && localStorage.getItem(KEYS.key) && (!simple || needsAI)){
+        const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="Auto: AI used for interpretation/synthesis from retrieved evidence only.";
+      }else if(hits.length){
+        const r=localAnswer(q,hits);renderResult(r);$("askStatus").textContent="Auto: direct document answer used — no Gemini needed.";
+      }else{
+        renderResult({answer:"Not found in supplied material.",source:null,evidence:[]});
+        $("askStatus").textContent="Auto: no supporting evidence found in the supplied material.";
+      }
+    }
     $("askStatus").className="status good";
   }catch(e){$("askStatus").textContent=e.message;$("askStatus").className="status bad";$("answerArea").innerHTML=`<div class="answer-box"><h3>ANSWER</h3><div class="answer-text">${esc(e.message)}</div></div>`}
   $("askBtn").disabled=false;
