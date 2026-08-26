@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v3.6</title>
+<title>RBI Regulatory Assistant v3.7</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -51,7 +51,7 @@ window.TESSERACT_READY=(async function(){
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.6</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.7</div></div></div>
  <nav>
   <button type="button" class="active" data-page="ask">Ask RBI</button>
   <button type="button" data-page="library">Knowledge Library</button>
@@ -79,7 +79,7 @@ window.TESSERACT_READY=(async function(){
   <div id="status" class="status"></div>
  </div>
  <div class="card" id="answerCard" style="display:none">
-  <h2>Written Answer</h2>
+  <h2>Answer</h2>
   <div id="answer" class="answer"></div>
   <div class="row" style="margin-top:14px">
    <button class="btn secondary" id="speakAnswer">🔊 Read answer aloud</button>
@@ -108,7 +108,7 @@ window.TESSERACT_READY=(async function(){
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.6 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.7 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. It is retained when you move between app versions on this device. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
@@ -119,7 +119,7 @@ window.TESSERACT_READY=(async function(){
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v3.6</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v3.7</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -131,13 +131,13 @@ window.TESSERACT_READY=(async function(){
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v3.6 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v3.7 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v3.6. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v3.7. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -514,52 +514,39 @@ async function ask(){
 
   const key=await getKey();
   if(!key){setStatus('No Gemini key saved. Use Document Search or add a key in Settings.','err');return}
-  const system=`You are a strict document-grounded regulatory assistant.
+  const system=`You are a strict document-grounded regulatory and knowledge assistant.
 
-SOURCE LOCK — ABSOLUTE RULE:
-1. Use ONLY the supplied evidence extracted from documents uploaded by the user.
-2. Do NOT use your general knowledge, training knowledge, memory, internet, assumptions or guesses to fill gaps.
-3. Every substantive regulatory statement must be supported by the supplied evidence.
-4. If the supplied evidence does not establish the answer, the ENTIRE answer must be an unsupported-answer response. Start with exactly: "Not found in the supplied material."
-5. When the answer is not established, do NOT provide a general background summary, related regulatory information, likely penalty, practical inference, or explanation from your own knowledge.
-6. If evidence is incomplete, state only the specific fact(s) that are actually established and clearly identify what is not established.
-6. If supplied documents conflict, identify the conflict, name the relevant sources/pages, and do not choose one silently.
-7. Never invent a document name, page number, section, paragraph, quotation or citation.
-8. Do not claim that a provision is current, amended, superseded or applicable on a date unless the supplied evidence establishes it.
-9. Distinguish clearly between what the document states and any practical interpretation.
-10. Keep the answer concise but sufficiently clear for a bank/financial-inclusion field professional.
+DIRECT-ANSWER POLICY:
+- Answer the user's exact question first.
+- Be concise and to the point.
+- For a straightforward factual question, normally use 1-3 sentences and preferably under 50 words.
+- Normal maximum answer length is 150 words unless the question genuinely requires more.
+- Do not repeat the question.
+- Do not add background, history, generic explanations or unrelated information.
+- If the question asks for a number, rate, limit, period, eligibility, requirement or condition, put the answer first.
+- Use short bullets or a small table only when multiple conditions make it clearer.
+- Give a short "Why" only when it materially helps.
+- Give the source as: document name + page + section/paragraph when established by the evidence.
+- Use ONLY the supplied/retrieved evidence. Do not use internet search, outside knowledge, memory or assumptions.
+- If the supplied material does not establish the answer, say exactly: "Not found in the supplied material."
+- Do not provide a partial answer merely because related material exists.
+- Never invent a source, page, section, figure, rate or condition.
 
-OUTPUT FORMAT:
+PREFERRED OUTPUT:
 ANSWER:
-Give the direct answer first.
-
-REGULATORY POSITION:
-State only the requirement directly relevant to the question and supported by the supplied evidence. If the answer is not established, write: "Not found in the supplied material."
-
-IMPORTANT — UNSUPPORTED QUESTION:
-If ANSWER is "Not found in the supplied material.", then REGULATORY POSITION, SOURCE, EVIDENCE, PRACTICAL IMPLICATION and CONFIDENCE must NOT introduce any additional substantive information. They must simply state that the supplied material does not establish the requested answer.
+[direct answer]
 
 SOURCE:
-Give document name, page and section/paragraph only when established by the evidence.
+[document name, page and section/paragraph, if established]
 
-EVIDENCE:
-Quote or closely reproduce only the relevant supplied passage, without adding unsupported text.
-
-PRACTICAL IMPLICATION:
-Explain the practical meaning only to the extent supported by the supplied evidence. If not established, say so.
-
-CONFIDENCE:
-High — evidence directly and clearly establishes the answer.
-Moderate — evidence supports the answer but has some limitation.
-Insufficient — the supplied material does not establish the answer.
+Only include WHY or additional detail when necessary to answer the question accurately.
 
 FINAL CHECK:
-Before responding, verify that every substantive statement is supported by the supplied evidence.
-If the evidence does not establish the requested answer, use "Not found in the supplied material." and remove all unrelated background information.
-If the answer is unsupported, do not provide a partial answer merely because related material was supplied.`;
+Every substantive statement must be supported by the supplied evidence.`
 
   const model=$('model').value;
-  const body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts:[{text:`USER QUESTION:\n${q}\n\nSUPPLIED EVIDENCE ONLY:\n${evidenceText}`}]}],generationConfig:{maxOutputTokens:3000}};
+  const responseStyle=$('responseStyle')?.value||'concise';
+  const body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts:[{text:`RESPONSE STYLE: ${responseStyle==='concise'?'CONCISE — answer directly and briefly.':'DETAILED — explain only where necessary.'}\n\nUSER QUESTION:\n${q}\n\nSUPPLIED EVIDENCE ONLY:\n${evidenceText}`}]}],generationConfig:{maxOutputTokens:responseStyle==='concise'?700:1800}};
   $('answer').textContent='Generating answer from retrieved evidence…';
   const result=await callGeminiWithRetry({model,key,body,maxAttempts:3});
   const j=result.response;
@@ -684,6 +671,15 @@ document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{
  b.classList.add('active');b.classList.remove('ghost');b.classList.add('secondary');
  window.answerMode=b.dataset.mode;
 });
+$('responseStyle')?.addEventListener('change',async()=>{
+ try{
+  await saveSetting('responseStyleV37',$('responseStyle').value);
+ }catch(e){}
+});
+loadSetting('responseStyleV37').then(v=>{
+ if(v && $('responseStyle')) $('responseStyle').value=v;
+}).catch(()=>{});
+
 $('model').addEventListener('change',async()=>{
  try{
   await setPreferredModel($('model').value);
