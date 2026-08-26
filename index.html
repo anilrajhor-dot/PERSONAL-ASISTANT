@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.13</title>
+<title>RBI Regulatory Assistant v3.14</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
@@ -101,17 +101,17 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.13</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.14</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.13 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.14 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <script>
-const VERSION="3.13";
+const VERSION="3.14";
 const KEYS={docs:"rbi_ra_docs_v311",key:"rbi_ra_gemini_key_v311",model:"rbi_ra_model_v311"};
 const state={docs:[],mode:"auto",recognition:null};
 
@@ -173,51 +173,90 @@ function renderDocs(){
 function removeDoc(id){state.docs=state.docs.filter(d=>d.id!==id);saveDocs();renderDocs()}
 $("deleteAll").onclick=()=>{if(confirm("Delete all locally stored material?")){state.docs=[];saveDocs();renderDocs()}};
 
-function terms(q){return q.toLowerCase().replace(/[₹,.;:()\/\-]/g," ").split(/\s+/).filter(x=>x.length>2&&!["what","rate","please","tell","about","under","above","loan","group"].includes(x))}
+function terms(q){
+  const stop=new Set(["what","which","when","where","who","why","how","many","much","please","tell","about","under","above","loan","loans","group","groups","the","for","to","of","on","is","are","can","be","this","that","and","with","from","into","their","there","does","do","a","an"]);
+  return q.toLowerCase().replace(/[₹,.;:()\/\-]/g," ").split(/\s+/).filter(x=>x.length>2&&!stop.has(x));
+}
+function sentenceParts(text){return (text||"").replace(/\s+/g," ").split(/(?<=[.!?])\s+/).filter(s=>s.trim().length>12)}
+function scoreSentence(s,ts,q){
+  const low=s.toLowerCase();let score=0;
+  for(const t of ts){
+    if(low.includes(t))score+=3;
+    const n=(low.match(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g"))||[]).length;
+    score+=Math.min(n,3);
+  }
+  if(/\b\d+(?:\.\d+)?\s*%/.test(s))score+=2;
+  if(/₹|\brs\.?\s?\d|\blakh\b|\bcrore\b|\bmembers?\b|\bminimum\b|\bmaximum\b|\binterest\b|\brate\b|\bkyc\b|\beligib/i.test(s))score+=2;
+  if(/\b(shg|self help group|account|savings|cash credit|term loan|cc limit|drawing power|mclr|benchmark)\b/i.test(s))score+=1;
+  return score;
+}
 function retrieve(q){
-  const ts=terms(q);const hits=[];
+  const ts=terms(q), ql=q.toLowerCase();const hits=[];
   for(const d of state.docs)for(const p of d.pages){
-    const text=p.text||"", low=text.toLowerCase();let score=0;
-    for(const t of ts){let i=low.indexOf(t);while(i>=0){score++;i=low.indexOf(t,i+t.length)}}
-    if(score)hits.push({d,p,score});
+    const text=(p.text||"").replace(/\s+/g," ");if(!text)continue;
+    let score=0;
+    for(const t of ts){const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");const n=(text.match(re)||[]).length;score+=Math.min(n,8)*2}
+    if(ql.length>5 && text.toLowerCase().includes(ql))score+=30;
+    const ss=sentenceParts(text).map(s=>({s,score:scoreSentence(s,ts,q)})).sort((a,b)=>b.score-a.score);
+    const best=ss[0];
+    if(best && best.score>0)score+=best.score*3;
+    if(score>0)hits.push({d,p,score,bestSentence:best?.s||""});
   }
   hits.sort((a,b)=>b.score-a.score);return hits.slice(0,8);
 }
 function bestSentences(text,q){
-  const ts=terms(q);const parts=(text||"").split(/(?<=[.!?])\s+/).filter(Boolean);
-  const scored=parts.map((s,i)=>{const low=s.toLowerCase();let score=0;for(const t of ts){if(low.includes(t))score+=2;const n=(low.match(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g"))||[]).length;score+=Math.min(n,3)}
-    if(/\b\d+(?:\.\d+)?\s*%/.test(s))score+=1;if(/\b(?:members?|lakh|crore|mclr|benchmark|interest|rate|minimum|maximum|kyc)\b/i.test(s))score+=1;return {s,i,score}}).sort((a,b)=>b.score-a.score);
+  const ts=terms(q);const scored=sentenceParts(text).map((s,i)=>({s,i,score:scoreSentence(s,ts,q)})).sort((a,b)=>b.score-a.score);
   if(!scored.length)return "";
-  const top=scored.slice(0,3).sort((a,b)=>a.i-b.i);return top.map(x=>x.s).join(" ").slice(0,1400);
+  const top=scored.slice(0,3).filter(x=>x.score>0).sort((a,b)=>a.i-b.i);
+  return top.map(x=>x.s).join(" ").slice(0,1200);
 }
 function snippets(hit,q){
-  const text=hit.p.text||"";const best=bestSentences(text,q);if(best)return best;
-  return text.slice(0,1200);
+  const text=hit.p.text||"";const parts=sentenceParts(text);const ts=terms(q);
+  const scored=parts.map((s,i)=>({s,i,score:scoreSentence(s,ts,q)})).sort((a,b)=>b.score-a.score);
+  const top=scored.slice(0,4).filter(x=>x.score>0).sort((a,b)=>a.i-b.i);
+  return (top.length?top.map(x=>x.s).join(" "):text.slice(0,1000)).slice(0,1400);
 }
 function localAnswer(q,hits){
   if(!hits.length)return {answer:"Not found in supplied material.",source:null,evidence:[]};
-  const evidence=hits.slice(0,5).map(h=>({name:h.d.name,page:pageNo(h.p.page)??1,text:snippets(h,q)}));
-  const joined=evidence.map(e=>e.text).join("\n");
-  let answer="";
+  const evidence=hits.slice(0,5).map(h=>({name:h.d.name,page:pageNo(h.p.page)??1,text:snippets(h,q),score:h.score}));
   const lq=q.toLowerCase();
-  // Prefer the sentence that actually answers the question rather than the first OCR sentence on the page.
+  // Extract the most relevant answer-bearing sentence, not the first sentence on the page.
+  let candidates=[];
+  for(const h of hits.slice(0,5)){
+    for(const s of sentenceParts(h.p.text||"")){
+      candidates.push({s,score:scoreSentence(s,terms(q))+h.score/10,h});
+    }
+  }
+  candidates.sort((a,b)=>b.score-a.score);
+  let answer=candidates[0]?.s||"";
   if(/interest|rate/i.test(lq)){
-    const matches=[...joined.matchAll(/[^.!?]*(?:interest rate|rate of interest|interest at)[^.!?]*?(\d+(?:\.\d+)?\s*%)[^.!?]*[.!?]?/ig)];
-    if(matches.length)answer=matches[0][0].trim();
+    const x=candidates.find(c=>/\b(?:interest|rate|mclr|benchmark)\b/i.test(c.s)&&/\d+(?:\.\d+)?\s*%/i.test(c.s));
+    if(x)answer=x.s;
+  } else if(/members?/i.test(lq)){
+    const x=candidates.find(c=>/\bmembers?\b/i.test(c.s)&&/\d/.test(c.s));
+    if(x)answer=x.s;
+  } else if(/kyc|know your customer/i.test(lq)){
+    const x=candidates.find(c=>/\bkyc\b|know your customer/i.test(c.s));
+    if(x)answer=x.s;
   }
-  if(!answer && /members?/i.test(lq)){
-    const matches=[...joined.matchAll(/[^.!?]*(?:members?|minimum of|maximum of)[^.!?]*?\d+(?:\s*[-–]\s*\d+)?[^.!?]*[.!?]?/ig)];
-    if(matches.length)answer=matches[0][0].trim();
-  }
-  if(!answer)answer=bestSentences(joined,q);
-  if(!answer)answer=evidence[0].text;
-  return {answer,source:evidence[0],evidence};
+  if(!answer || answer.length<8)answer=bestSentences(evidence[0]?.text||"",q);
+  const bestHit=candidates[0]?.h||hits[0];
+  const source={name:bestHit.d.name,page:pageNo(bestHit.p.page)??1,text:answer};
+  return {answer:answer||"Not found in supplied material.",source,evidence};
 }
 async function gemini(q,hits){
   const key=localStorage.getItem(KEYS.key);if(!key)throw new Error("No Gemini key saved. Use Document Search or add a key in Settings.");
   const model=localStorage.getItem(KEYS.model)||"gemini-3.5-flash-lite";
   const evidence=hits.slice(0,8).map((h,i)=>`EVIDENCE ${i+1} | ${h.d.name} | PDF page ${h.p.page}\n${snippets(h,q)}`).join("\n\n");
-  const prompt=`You are a document-grounded regulatory assistant.\nSTRICT EVIDENCE LOCK: Use ONLY the supplied evidence below. Never use outside knowledge. If the evidence does not establish the answer, say exactly "Not found in supplied material." Do not infer missing facts.\nPRECISION FORMAT: First line = direct answer to the question. Then, only if necessary, one short condition/clarification. Then SOURCE with document name, page and section/paragraph if explicitly available. Do not add general background.\nTERMINOLOGY LOCK: Never confuse loan amount, sanction amount, CCL, drawing power, outstanding balance, limit or corpus. If the question uses one term, answer for that term only.\nQuestion: ${q}\n\n${evidence}`;
+  const prompt=`You are a document-grounded regulatory assistant.
+STRICT EVIDENCE LOCK: Use ONLY the supplied evidence below. Never use outside knowledge. If the evidence does not establish the answer, say exactly "Not found in supplied material." Do not infer missing facts.
+RELEVANCE LOCK: Answer ONLY the user's question. Ignore unrelated sentences appearing in the same PDF page. Select the sentence or clause that directly addresses the question. Do not copy the first sentence of an evidence block merely because it appears first.
+PRECISION FORMAT: First line = direct answer. Keep it to 1-3 sentences. Then, only if necessary, one short condition/clarification. Then SOURCE with document name and page. Do not add general background.
+TERMINOLOGY LOCK: Never confuse loan amount, sanction amount, CCL, drawing power, outstanding balance, limit or corpus. If the question uses one term, answer for that term only.
+If the evidence contains a direct statement answering the question, use that statement rather than saying "Not found".
+Question: ${q}
+
+${evidence}`;
   const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
   const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:500}})});
   const data=await r.json();if(!r.ok)throw new Error(data?.error?.message||`HTTP ${r.status}`);
