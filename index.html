@@ -4,25 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.12</title>
+<title>RBI Regulatory Assistant v3.13</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
 header{position:sticky;top:0;z-index:20;background:linear-gradient(135deg,#103f84,#1b5bb1);color:#fff;padding:22px 22px 18px;box-shadow:0 4px 14px #173f7020}
 .brand{display:flex;gap:16px;align-items:center}.logo{width:64px;height:64px;background:#fff;color:var(--blue);border-radius:18px;display:grid;place-items:center;font-size:38px;font-weight:900}.title{font-size:29px;font-weight:850;line-height:1.05}.subtitle{font-size:16px;margin-top:7px;color:#dfeaff;font-weight:650}
-nav{display:flex;gap:16px;margin-top:18px;overflow:auto}button,.tab{border:0;border-radius:17px;padding:15px 24px;font-size:17px;font-weight:800;cursor:pointer;white-space:nowrap}.tab{background:#ffffff12;color:#fff;border:2px solid #ffffff35}.tab.active{background:#fff;color:var(--blue)}
+nav{display:grid;grid-template-columns:1fr 1.75fr 1fr;gap:12px;margin-top:18px}nav .tab{width:100%;overflow:hidden;text-overflow:ellipsis}button,.tab{border:0;border-radius:17px;padding:15px 24px;font-size:17px;font-weight:800;cursor:pointer;white-space:nowrap}.tab{background:#ffffff12;color:#fff;border:2px solid #ffffff35}.tab.active{background:#fff;color:var(--blue)}
 main{max-width:900px;margin:auto;padding:22px 22px 60px}.card{background:#fff;border:2px solid var(--line);border-radius:24px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px #193d6810}.section-title{font-size:28px;font-weight:850;margin:0 0 18px}.label{font-weight:800;color:var(--muted);margin:12px 0 8px}.modes{display:flex;flex-wrap:wrap;gap:12px}.mode{background:#f1f4f8;color:#344156}.mode.active{background:#e8f1ff;color:var(--blue)}
 textarea,input,select{width:100%;border:2px solid var(--line);border-radius:18px;padding:18px;font:inherit;color:var(--ink);background:#fff}textarea{min-height:155px;resize:vertical}button.primary{background:var(--blue);color:#fff}button.soft{background:#eaf2ff;color:var(--blue)}button.danger{background:#fff0ee;color:var(--bad)}button:disabled{opacity:.5;cursor:not-allowed}
 .actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}.status{font-weight:750;margin-top:14px}.good{color:var(--good)}.bad{color:var(--bad)}.muted{color:var(--muted)}
 .answer-head{font-size:28px;font-weight:850;margin-bottom:16px}.answer-box,.source-box,.evidence-box{border:2px solid #d9e4f3;border-radius:20px;padding:22px;margin-top:14px;background:#fbfdff}.answer-box h3,.source-box h3,.evidence-box h3{color:#1c559f;font-size:20px;letter-spacing:.5px;margin:0 0 12px}.answer-text{font-size:21px;line-height:1.6;font-weight:600}.source-text{font-size:17px;line-height:1.5;font-weight:650}.hint{background:#f1f5fb;border-radius:18px;padding:17px;color:#53627a;font-weight:650;line-height:1.5}.drop{border:3px dashed #b8cae4;border-radius:22px;padding:30px;text-align:center;background:#f9fbfe}.drop strong{display:block;font-size:21px;margin-bottom:7px}.file-list{display:grid;gap:10px;margin-top:15px}.file-row{border:1px solid var(--line);border-radius:15px;padding:14px;display:flex;justify-content:space-between;gap:12px;align-items:center}.file-name{font-weight:750;overflow-wrap:anywhere}.badge{font-size:13px;background:#edf4ff;color:var(--blue);border-radius:999px;padding:6px 9px;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.small{font-size:14px}.footer{text-align:center;color:#6c7890;font-weight:650;line-height:1.45;padding:20px}
 .hidden{display:none!important}.check{font-size:17px;margin:12px 0}.check::before{content:"✓";display:inline-grid;place-items:center;background:#72b9fa;color:#fff;width:32px;height:32px;border-radius:10px;margin-right:12px;font-weight:900}
 table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid var(--line);padding:10px;text-align:left}th{background:#eef4fc}
-@media(max-width:650px){main{padding:16px 14px 50px}.card{padding:18px;border-radius:20px}.title{font-size:24px}.logo{width:56px;height:56px}.grid{grid-template-columns:1fr}.answer-text{font-size:18px}button,.tab{padding:13px 17px}.section-title{font-size:25px}}
+@media(max-width:650px){main{padding:16px 14px 50px}.card{padding:18px;border-radius:20px}.title{font-size:24px}.logo{width:56px;height:56px}.grid{grid-template-columns:1fr}.answer-text{font-size:18px}button,.tab{padding:12px 8px;font-size:15px}.section-title{font-size:25px}nav{gap:7px}nav .tab{min-width:0}}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.12</div></div></div>
+  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.13</div></div></div>
   <nav>
     <button class="tab active" data-page="ask">Ask RBI</button>
     <button class="tab" data-page="library">Knowledge Library</button>
@@ -101,23 +101,34 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.12</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.13</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.12 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.13 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <script>
-const VERSION="3.11";
+const VERSION="3.13";
 const KEYS={docs:"rbi_ra_docs_v311",key:"rbi_ra_gemini_key_v311",model:"rbi_ra_model_v311"};
 const state={docs:[],mode:"auto",recognition:null};
 
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function load(){try{state.docs=JSON.parse(localStorage.getItem(KEYS.docs)||"[]")}catch{state.docs=[]} $("apiKey").value=localStorage.getItem(KEYS.key)||""; $("model").value=localStorage.getItem(KEYS.model)||"gemini-3.5-flash-lite"; renderDocs()}
+function pageNo(v){
+  if(typeof v==="number"&&Number.isFinite(v))return v;
+  if(typeof v==="string"&&v.trim()&&Number.isFinite(Number(v)))return Number(v);
+  if(v&&typeof v==="object"){
+    for(const k of ["page","pageNumber","number","index"]){const n=pageNo(v[k]);if(n!==null)return n}
+  }
+  return null;
+}
+function normaliseDocs(){
+  state.docs=(Array.isArray(state.docs)?state.docs:[]).map(d=>({...d,pages:(Array.isArray(d.pages)?d.pages:[]).map(p=>({...p,page:pageNo(p.page)??1}))}));
+}
+function load(){try{state.docs=JSON.parse(localStorage.getItem(KEYS.docs)||"[]")}catch{state.docs=[]} normaliseDocs(); $("apiKey").value=localStorage.getItem(KEYS.key)||""; $("model").value=localStorage.getItem(KEYS.model)||"gemini-3.5-flash-lite"; renderDocs()}
 function saveDocs(){localStorage.setItem(KEYS.docs,JSON.stringify(state.docs))}
 function setPage(page){document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));["ask","library","settings"].forEach(p=>$("page-"+p).classList.toggle("hidden",p!==page)); if(page==="library")renderDocs()}
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
@@ -172,19 +183,34 @@ function retrieve(q){
   }
   hits.sort((a,b)=>b.score-a.score);return hits.slice(0,8);
 }
+function bestSentences(text,q){
+  const ts=terms(q);const parts=(text||"").split(/(?<=[.!?])\s+/).filter(Boolean);
+  const scored=parts.map((s,i)=>{const low=s.toLowerCase();let score=0;for(const t of ts){if(low.includes(t))score+=2;const n=(low.match(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g"))||[]).length;score+=Math.min(n,3)}
+    if(/\b\d+(?:\.\d+)?\s*%/.test(s))score+=1;if(/\b(?:members?|lakh|crore|mclr|benchmark|interest|rate|minimum|maximum|kyc)\b/i.test(s))score+=1;return {s,i,score}}).sort((a,b)=>b.score-a.score);
+  if(!scored.length)return "";
+  const top=scored.slice(0,3).sort((a,b)=>a.i-b.i);return top.map(x=>x.s).join(" ").slice(0,1400);
+}
 function snippets(hit,q){
-  const text=hit.p.text||"", ts=terms(q);let pos=ts.length?Math.max(0,text.toLowerCase().indexOf(ts[0])):0;
-  if(pos<0)pos=0;const start=Math.max(0,pos-380);return text.slice(start,start+1200);
+  const text=hit.p.text||"";const best=bestSentences(text,q);if(best)return best;
+  return text.slice(0,1200);
 }
 function localAnswer(q,hits){
   if(!hits.length)return {answer:"Not found in supplied material.",source:null,evidence:[]};
-  const evidence=hits.slice(0,5).map(h=>({name:h.d.name,page:h.p.page,text:snippets(h,q)}));
+  const evidence=hits.slice(0,5).map(h=>({name:h.d.name,page:pageNo(h.p.page)??1,text:snippets(h,q)}));
   const joined=evidence.map(e=>e.text).join("\n");
   let answer="";
-  // Compact extraction for common factual questions.
-  const rate=joined.match(/(?:interest rate|interest at|rate of interest)[^.]{0,180}?(\d+(?:\.\d+)?\s*%)(?:\s*per annum|\s*p\.a\.)?/i);
-  if(rate) answer=rate[1]+" per annum.";
-  if(!answer) answer=evidence[0].text.split(/(?<=[.!?])\s+/).slice(0,2).join(" ");
+  const lq=q.toLowerCase();
+  // Prefer the sentence that actually answers the question rather than the first OCR sentence on the page.
+  if(/interest|rate/i.test(lq)){
+    const matches=[...joined.matchAll(/[^.!?]*(?:interest rate|rate of interest|interest at)[^.!?]*?(\d+(?:\.\d+)?\s*%)[^.!?]*[.!?]?/ig)];
+    if(matches.length)answer=matches[0][0].trim();
+  }
+  if(!answer && /members?/i.test(lq)){
+    const matches=[...joined.matchAll(/[^.!?]*(?:members?|minimum of|maximum of)[^.!?]*?\d+(?:\s*[-–]\s*\d+)?[^.!?]*[.!?]?/ig)];
+    if(matches.length)answer=matches[0][0].trim();
+  }
+  if(!answer)answer=bestSentences(joined,q);
+  if(!answer)answer=evidence[0].text;
   return {answer,source:evidence[0],evidence};
 }
 async function gemini(q,hits){
@@ -198,9 +224,11 @@ async function gemini(q,hits){
   return {text:data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join("")||"No answer returned.",evidence:hits.slice(0,5)};
 }
 function renderResult(res,ai=false){
+  if(res.source)res.source.page=pageNo(res.source.page)??1;
+  if(res.evidence)res.evidence.forEach(e=>e.page=pageNo(e.page)??1);
   const src=res.source||(res.evidence&&res.evidence[0]); let html=`<div class="answer-box"><h3>ANSWER</h3><div class="answer-text">${esc(ai?res.text:res.answer).replace(/\n/g,"<br>")}</div></div>`;
-  if(src)html+=`<div class="source-box"><h3>SOURCE</h3><div class="source-text">${esc(src.name)}, Page ${esc(src.page)}</div></div>`;
-  if(res.evidence?.length){html+=`<div class="evidence-box"><h3>EVIDENCE USED</h3>${res.evidence.slice(0,3).map((e,i)=>`<p><b>${i+1}. ${esc(e.name)} — Page ${esc(e.page)}</b><br>${esc(e.text)}</p>`).join("")}</div>`}
+  if(src)html+=`<div class="source-box"><h3>SOURCE</h3><div class="source-text">${esc(src.name)}, Page ${esc(pageNo(src.page)??1)}</div></div>`;
+  if(res.evidence?.length){html+=`<div class="evidence-box"><h3>EVIDENCE USED</h3>${res.evidence.slice(0,3).map((e,i)=>`<p><b>${i+1}. ${esc(e.name)} — Page ${esc(pageNo(e.page)??1)}</b><br>${esc(e.text)}</p>`).join("")}</div>`}
   $("answerArea").innerHTML=html;
 }
 $("askBtn").onclick=async()=>{
