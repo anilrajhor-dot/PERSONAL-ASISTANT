@@ -1,745 +1,243 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v3.10</title>
+<meta name="theme-color" content="#124b9b">
+<title>RBI Regulatory Assistant v3.11</title>
 <style>
-:root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
-header{background:linear-gradient(135deg,#082b68,#1557b0);color:#fff;padding:20px 18px 18px;position:sticky;top:0;z-index:5;box-shadow:0 2px 10px #0002}
-.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:12px;background:#fff;color:var(--blue);display:grid;place-items:center;font-weight:800;font-size:22px}.title{font-size:21px;font-weight:750}.sub{font-size:12px;opacity:.82;margin-top:2px}
-nav{display:flex;gap:8px;margin-top:16px;overflow:auto}nav button{border:1px solid #ffffff44;background:#ffffff12;color:#fff;padding:9px 13px;border-radius:10px;white-space:nowrap;font-weight:650}nav button.active{background:#fff;color:var(--blue)}
-main{max-width:1050px;margin:auto;padding:18px}.page{display:none}.page.active{display:block}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px;margin-bottom:15px;box-shadow:0 2px 8px #1018280a}
-h2{font-size:18px;margin:0 0 10px}h3{font-size:15px;margin:18px 0 8px}.hint{color:var(--muted);font-size:13px;line-height:1.5}
-textarea,input,select{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;background:#fff;color:var(--text)}textarea{min-height:130px;resize:vertical}
-.row{display:flex;gap:9px;flex-wrap:wrap}.btn{border:0;border-radius:11px;padding:11px 15px;font-weight:700;cursor:pointer}.primary{background:var(--blue);color:#fff}.secondary{background:#eef4ff;color:var(--blue)}.danger{background:#fff1f0;color:var(--danger)}.ghost{background:#f2f4f7;color:#344054}
-.btn:disabled{opacity:.5;cursor:not-allowed}.answer{white-space:pre-wrap;line-height:1.6;font-size:15px}.source{border-left:3px solid var(--blue);padding:9px 12px;background:#f7faff;margin:9px 0;border-radius:6px}
-.status{font-size:12px;color:var(--muted);margin-top:9px}.ok{color:var(--ok)}.err{color:var(--danger)}
-.file{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}.file:last-child{border:0}.file-name{font-weight:650;overflow:hidden;text-overflow:ellipsis}.pill{font-size:11px;background:#eef2f6;border-radius:999px;padding:4px 7px;color:#475467}
-#drop{border:2px dashed #b8c7dc;text-align:center;padding:28px;border-radius:14px;background:#fafcff;cursor:pointer}.small{font-size:11px;color:var(--muted)}
-footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
-.check{display:flex;gap:8px;align-items:flex-start;font-size:13px}.check input{width:auto;margin-top:3px}
-@media(max-width:600px){main{padding:12px}.card{padding:14px}.title{font-size:18px}header{padding:16px 13px}}
-
-.ai-section{margin:18px 0 22px;padding:14px 16px;border:1px solid #dbe5f4;border-radius:14px;background:#fbfdff}
-.ai-section-title{font-weight:800;letter-spacing:.02em;margin-bottom:8px;color:#174a96}
-.ai-section-body{line-height:1.65}
-.ai-text{line-height:1.65}
-
-.policy-box{margin-top:10px;border:1px solid #dbe4f0;border-radius:14px;background:#f8fafc;overflow:hidden}
-.policy-box summary{cursor:pointer;padding:10px 13px;font-weight:800;color:#174f9f;list-style:none}
-.policy-box summary::-webkit-details-marker{display:none}
-.policy-box summary:after{content:'＋';float:right;font-size:18px}
-.policy-box[open] summary:after{content:'−'}
-.policy-text{padding:0 13px 12px!important;margin:0!important;line-height:1.5}
-
-
-.smart-note{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:#f5f8fd;color:#52627a;font-size:.9rem}
-
+:root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
+header{position:sticky;top:0;z-index:20;background:linear-gradient(135deg,#103f84,#1b5bb1);color:#fff;padding:22px 22px 18px;box-shadow:0 4px 14px #173f7020}
+.brand{display:flex;gap:16px;align-items:center}.logo{width:64px;height:64px;background:#fff;color:var(--blue);border-radius:18px;display:grid;place-items:center;font-size:38px;font-weight:900}.title{font-size:29px;font-weight:850;line-height:1.05}.subtitle{font-size:16px;margin-top:7px;color:#dfeaff;font-weight:650}
+nav{display:flex;gap:16px;margin-top:18px;overflow:auto}button,.tab{border:0;border-radius:17px;padding:15px 24px;font-size:17px;font-weight:800;cursor:pointer;white-space:nowrap}.tab{background:#ffffff12;color:#fff;border:2px solid #ffffff35}.tab.active{background:#fff;color:var(--blue)}
+main{max-width:900px;margin:auto;padding:22px 22px 60px}.card{background:#fff;border:2px solid var(--line);border-radius:24px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px #193d6810}.section-title{font-size:28px;font-weight:850;margin:0 0 18px}.label{font-weight:800;color:var(--muted);margin:12px 0 8px}.modes{display:flex;flex-wrap:wrap;gap:12px}.mode{background:#f1f4f8;color:#344156}.mode.active{background:#e8f1ff;color:var(--blue)}
+textarea,input,select{width:100%;border:2px solid var(--line);border-radius:18px;padding:18px;font:inherit;color:var(--ink);background:#fff}textarea{min-height:155px;resize:vertical}button.primary{background:var(--blue);color:#fff}button.soft{background:#eaf2ff;color:var(--blue)}button.danger{background:#fff0ee;color:var(--bad)}button:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}.status{font-weight:750;margin-top:14px}.good{color:var(--good)}.bad{color:var(--bad)}.muted{color:var(--muted)}
+.answer-head{font-size:28px;font-weight:850;margin-bottom:16px}.answer-box,.source-box,.evidence-box{border:2px solid #d9e4f3;border-radius:20px;padding:22px;margin-top:14px;background:#fbfdff}.answer-box h3,.source-box h3,.evidence-box h3{color:#1c559f;font-size:20px;letter-spacing:.5px;margin:0 0 12px}.answer-text{font-size:21px;line-height:1.6;font-weight:600}.source-text{font-size:17px;line-height:1.5;font-weight:650}.hint{background:#f1f5fb;border-radius:18px;padding:17px;color:#53627a;font-weight:650;line-height:1.5}.drop{border:3px dashed #b8cae4;border-radius:22px;padding:30px;text-align:center;background:#f9fbfe}.drop strong{display:block;font-size:21px;margin-bottom:7px}.file-list{display:grid;gap:10px;margin-top:15px}.file-row{border:1px solid var(--line);border-radius:15px;padding:14px;display:flex;justify-content:space-between;gap:12px;align-items:center}.file-name{font-weight:750;overflow-wrap:anywhere}.badge{font-size:13px;background:#edf4ff;color:var(--blue);border-radius:999px;padding:6px 9px;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.small{font-size:14px}.footer{text-align:center;color:#6c7890;font-weight:650;line-height:1.45;padding:20px}
+.hidden{display:none!important}.check{font-size:17px;margin:12px 0}.check::before{content:"✓";display:inline-grid;place-items:center;background:#72b9fa;color:#fff;width:32px;height:32px;border-radius:10px;margin-right:12px;font-weight:900}
+table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid var(--line);padding:10px;text-align:left}th{background:#eef4fc}
+@media(max-width:650px){main{padding:16px 14px 50px}.card{padding:18px;border-radius:20px}.title{font-size:24px}.logo{width:56px;height:56px}.grid{grid-template-columns:1fr}.answer-text{font-size:18px}button,.tab{padding:13px 17px}.section-title{font-size:25px}}
 </style>
-<script>
-window.PDFJS_READY=(async function(){
- if(window.pdfjsLib)return window.pdfjsLib;
- try{
-  const m=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs');
-  m.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
-  window.pdfjsLib=m; return m;
- }catch(e){console.warn('PDF.js load failed',e);return null;}
-})();
-</script>
-<script>
-window.TESSERACT_READY=(async function(){
- if(window.Tesseract)return window.Tesseract;
- try{
-  const m=await import('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/+esm');
-  window.Tesseract=m; return m;
- }catch(e){console.warn('OCR engine could not be loaded',e);return null;}
-})();
-</script>
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.10</div></div></div>
- <nav>
-  <button type="button" class="active" data-page="ask">Ask RBI</button>
-  <button type="button" data-page="library">Knowledge Library</button>
-  <button type="button" data-page="settings">Settings</button>
- </nav>
+  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.11</div></div></div>
+  <nav>
+    <button class="tab active" data-page="ask">Ask RBI</button>
+    <button class="tab" data-page="library">Knowledge Library</button>
+    <button class="tab" data-page="settings">Settings</button>
+  </nav>
 </header>
 
 <main>
-<section id="ask" class="page active">
- <div class="card">
-  <h2>Ask a regulatory question</h2>
-  <div class="hint" style="margin:10px 0 6px"><strong>Answer mode</strong></div>
-  <div class="row">
-   <button class="btn secondary mode active" data-mode="auto">⚡ Auto</button>
-   <button class="btn ghost mode" data-mode="ai">🔵 AI Regulatory Answer</button>
-   <button class="btn ghost mode" data-mode="search">🟢 Document Search</button>
+<section id="page-ask">
+  <div class="card">
+    <h1 class="section-title">Ask a regulatory question</h1>
+    <div class="label">Answer mode</div>
+    <div class="modes">
+      <button class="mode active" data-mode="auto">⚡ Auto</button>
+      <button class="mode" data-mode="ai">🔵 AI Regulatory Answer</button>
+      <button class="mode" data-mode="search">🟢 Document Search</button>
+    </div>
+    <div class="hint" style="margin-top:12px">
+      <b>Precision Answer Engine:</b> direct answer first, essential condition second, exact source/page when established.
+      <br><b>Strict Evidence Lock:</b> answers use only documents stored in this app. Unsupported facts are not guessed.
+    </div>
+    <textarea id="question" placeholder="Ask your regulatory question…"></textarea>
+    <div class="actions">
+      <button id="askBtn" class="primary">Ask RBI</button>
+      <button id="speakBtn" class="soft">🎙 Speak</button>
+      <button id="clearBtn" class="mode">Clear</button>
+    </div>
+    <div id="askStatus" class="status muted"></div>
   </div>
-  <div class="hint"><strong>Evidence-first:</strong> answers use your supplied material and show the source when established.</div>
-  <details class="policy-box">
-   <summary>ⓘ Evidence Policy</summary>
-   <div class="hint policy-text">
-    <strong>
-If the question asks for a number, rate, limit, period, ratio, eligibility condition, or other rule, put the decisive value/condition first and make it visually prominent. If the supplied rule contains arithmetic (for example, a multiple of corpus plus a minimum/maximum), calculate it when the user provides the required figures. Show the calculation briefly, then the result, and cite the source. Never invent missing figures or rules.
 
-Strict Evidence Lock:</strong> the assistant uses only documents stored in this app. It does not fill gaps with outside knowledge or assumptions. If the material does not establish the answer, it says <strong>“Not found in the supplied material.”</strong>
-    <br><br><strong>Answer style:</strong> direct answer first, normally in 1–3 sentences, followed by the exact source/page when established. Additional explanation is included only when necessary.
-   </div>
-  </details>
-  <textarea id="question" placeholder="Example: What is the RBI requirement regarding ...?"></textarea>
-  <div class="row" style="margin-top:10px">
-   <button class="btn primary" id="askBtn">Ask RBI</button>
-   <button class="btn secondary" id="micBtn">🎙️ Speak</button>
-   <button class="btn ghost" id="clearBtn">Clear</button>
+  <div class="card">
+    <div class="answer-head">Answer</div>
+    <div id="smartHint" class="hint">Smart answer: key figures, limits and conditions are shown first; calculations are shown when the supplied rule and figures allow them.</div>
+    <div id="answerArea"><div class="muted" style="margin-top:16px">Your answer will appear here.</div></div>
   </div>
-  <div id="status" class="status"></div>
- </div>
- <div class="card" id="answerCard" style="display:none">
-  <h2>Answer</h2><div class="smart-note">Smart answer: key figures, limits and conditions are shown first; calculations are shown when the supplied rule and figures allow them.</div>
-  <div id="answer" class="answer"></div>
-  <div class="row" style="margin-top:14px">
-   <button class="btn secondary" id="speakAnswer">🔊 Read answer aloud</button>
-   <button class="btn ghost" id="stopSpeak">Stop</button>
-  </div>
- </div>
 </section>
 
-<section id="library" class="page">
- <div class="card">
-  <h2>Knowledge Library</h2>
-  <div class="hint">Upload material progressively. Files are kept in this browser's local storage. For v1, PDFs up to 50 MB can be sent inline to Gemini; other supported text/image files may also be used.</div>
-  <div id="drop" style="margin-top:14px;position:relative;overflow:hidden">
-   <div style="padding:18px 8px;text-align:center">
-    <strong>Tap here to select documents</strong><br>
-    <span class="small">PDF, TXT, CSV or HTML · multiple files allowed</span>
-   </div>
-   <input id="fileInput" type="file" multiple accept="application/pdf,text/plain,text/csv,application/json,text/html,.pdf,.txt,.csv,.json,.html,.htm"
-     style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer">
-   <div id="uploadStatus" class="status" style="margin-top:4px"></div>
+<section id="page-library" class="hidden">
+  <div class="card">
+    <h1 class="section-title">Knowledge Library</h1>
+    <p class="muted">Upload material progressively. Extracted text is kept in this browser. PDF, TXT, CSV and HTML are supported.</p>
+    <div class="drop" id="drop">
+      <strong>Tap here to select documents</strong>
+      PDF, TXT, CSV or HTML · multiple files allowed
+      <input id="fileInput" type="file" accept=".pdf,.txt,.csv,.html,.htm,text/plain,text/csv,text/html,application/pdf" multiple style="display:none">
+    </div>
+    <div id="uploadStatus" class="status"></div>
+    <div class="actions"><button id="deleteAll" class="danger">Delete all local material</button></div>
   </div>
-  <div class="row" style="margin-top:10px"><button class="btn danger" id="clearLibrary">Delete all local material</button></div>
- </div>
- <div class="card"><h2>Uploaded material</h2><div id="fileList"></div></div>
+  <div class="card"><h2 class="section-title">Uploaded material</h2><div id="fileList" class="file-list"></div></div>
 </section>
 
-<section id="settings" class="page">
- <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.10 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
-  <div class="hint">Your key is stored only in this browser's local storage. It is retained when you move between app versions on this device. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
-  <h3>Gemini API key</h3>
-  <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
-  <div class="row" style="margin-top:10px"><button class="btn primary" id="saveKey">Save key</button><button class="btn danger" id="removeKey">Remove key</button></div>
-  <div id="keyStatus" class="status"></div><div class="row" style="margin-top:10px"><button class="btn secondary" id="testKey">Test Gemini connection</button></div>
-  <h3>Model</h3><div class="hint">Gemini 3.5 Flash-Lite is the default and your selection is saved in this browser. Older saved 2.5/3.7 selections are automatically migrated.</div>
-  <select id="model"><option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite — Recommended</option><option value="gemini-3.6-flash">Gemini 3.6 Flash</option><option value="gemini-3.5-flash">Gemini 3.5 Flash</option></select>
- </div>
- <div class="card" id="versionCard">
-  <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v3.10</strong><br>
-  Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
- </div>
- <div class="card">
-  <h2>Strict source policy</h2>
-  <label class="check"><input type="checkbox" checked disabled> No internet search by the app</label>
-  <label class="check"><input type="checkbox" checked disabled> No outside RBI knowledge</label>
-  <label class="check"><input type="checkbox" checked disabled> Say “not found in supplied material” when unsupported</label>
-  <label class="check"><input type="checkbox" checked disabled> Cite document/page where the model can establish it</label>
- </div>
+<section id="page-settings" class="hidden">
+  <div class="card">
+    <h1 class="section-title">Gemini API key</h1>
+    <p class="muted">The key is stored only in this browser's local storage. Do not use this app on a shared/public computer with a sensitive key.</p>
+    <input id="apiKey" type="password" placeholder="Enter Gemini API key">
+    <div class="actions"><button id="saveKey" class="primary">Save key</button><button id="removeKey" class="danger">Remove key</button><button id="testKey" class="soft">Test Gemini connection</button></div>
+    <div id="keyStatus" class="status"></div>
+  </div>
+  <div class="card">
+    <h2 class="section-title">Model</h2>
+    <p class="muted"><b>Gemini 3.5 Flash-Lite</b> is the default. Your selection is saved in this browser.</p>
+    <select id="model">
+      <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite — Recommended</option>
+      <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
+      <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+    </select>
+    <div id="modelStatus" class="status good"></div>
+  </div>
+  <div class="card">
+    <h2 class="section-title">Precision Answer Engine</h2>
+    <div class="check">Direct answer first</div>
+    <div class="check">Key figure / limit / condition highlighted</div>
+    <div class="check">Terminology protection for CCL, drawing power, loan amount, sanction and outstanding</div>
+    <div class="check">Source and page shown when established</div>
+    <div class="check">No guessing when evidence is insufficient</div>
+  </div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.11</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">Strict source policy</h2>
+    <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
+  </div>
 </section>
+<div class="footer">RBI Regulatory Assistant v3.11 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
-<footer>RBI Regulatory Assistant v3.10 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <script>
-const DB_NAME='rbiAssistantV13', STORE='docs';
-let db;
-const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v3.10. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const VERSION="3.11";
+const KEYS={docs:"rbi_ra_docs_v311",key:"rbi_ra_gemini_key_v311",model:"rbi_ra_model_v311"};
+const state={docs:[],mode:"auto",recognition:null};
 
-Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function load(){try{state.docs=JSON.parse(localStorage.getItem(KEYS.docs)||"[]")}catch{state.docs=[]} $("apiKey").value=localStorage.getItem(KEYS.key)||""; $("model").value=localStorage.getItem(KEYS.model)||"gemini-3.5-flash-lite"; renderDocs()}
+function saveDocs(){localStorage.setItem(KEYS.docs,JSON.stringify(state.docs))}
+function setPage(page){document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));["ask","library","settings"].forEach(p=>$("page-"+p).classList.toggle("hidden",p!==page)); if(page==="library")renderDocs()}
+document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("active",x===b))});
 
-Separate regulatory fact from interpretation and practical implication. Never call something an RBI requirement unless the supplied material supports it. Never invent a paragraph, page, circular number, date or quotation.
+$("drop").onclick=()=>$("fileInput").click();
+$("drop").ondragover=e=>{e.preventDefault();$("drop").style.background="#eef5ff"};
+$("drop").ondragleave=()=>$("drop").style.background="";
+$("drop").ondrop=e=>{e.preventDefault();$("drop").style.background="";handleFiles([...e.dataTransfer.files])};
+$("fileInput").onchange=e=>handleFiles([...e.target.files]);
 
-Use this answer structure:
-ANSWER:
-[direct answer]
-
-EXPLANATION:
-[clear explanation]
-
-RELEVANT PROVISION:
-[short accurate quotation or paraphrase, only if supported]
-
-SOURCE:
-[document name, paragraph/section/page/date where identifiable]
-
-PRACTICAL IMPLICATION:
-[only if useful and supported]
-
-CONFIDENCE:
-[High / Moderate / Insufficient information]
-
-The user may ask in Hindi or Hinglish; answer in the same language when appropriate while preserving regulatory meaning. Keep the answer useful for banking professionals and trainers.`;
-
-function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});r.onsuccess=()=>{db=r.result;res()};r.onerror=()=>rej(r.error)})}
-function allDocs(){return new Promise((res,rej)=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function addDoc(x){return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');const r=t.objectStore(STORE).add(x);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-function delDoc(id){return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');const r=t.objectStore(STORE).delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-function clearDocs(){return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');const r=t.objectStore(STORE).clear();r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-function bytesToB64(buf){let bin='';const bytes=new Uint8Array(buf);const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)bin+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(bin)}
-async function fileToDoc(f){
- const base={name:f.name,displayName:f.name,type:f.type||mimeFromExt(f.name),size:f.size,added:new Date().toISOString()};
- if((f.type||'').includes('pdf')||/\.pdf$/i.test(f.name)){
-  const pdfjs=await window.PDFJS_READY;
-  if(!pdfjs)throw new Error('PDF engine could not be loaded. Connect to the internet once and retry.');
-  const pdf=await pdfjs.getDocument({data:await f.arrayBuffer()}).promise;
-  const pages=[]; let text='';
-  for(let n=1;n<=pdf.numPages;n++){
-   const page=await pdf.getPage(n),tc=await page.getTextContent();
-   const txt=tc.items.map(x=>x.str||'').join(' ').replace(/\s+/g,' ').trim();
-   pages.push({page:n,text:txt}); text+=`[PAGE ${n}]\n${txt}\n`;
+async function extractPDF(file){
+  const pdfjs=await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs");
+  pdfjs.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+  const buf=await file.arrayBuffer(),pdf=await pdfjs.getDocument({data:buf}).promise; const pages=[];
+  for(let p=1;p<=pdf.numPages;p++){const page=await pdf.getPage(p),c=await page.getTextContent();pages.push({page,text:c.items.map(x=>x.str).join(" ")});}
+  return pages;
+}
+async function extract(file){
+  const ext=file.name.split(".").pop().toLowerCase();
+  if(ext==="pdf") return await extractPDF(file);
+  const text=await file.text();
+  return [{page:1,text}];
+}
+async function handleFiles(files){
+  $("uploadStatus").textContent="Reading documents…";$("uploadStatus").className="status muted";
+  for(const file of files){
+    try{
+      if(!["pdf","txt","csv","html","htm"].includes(file.name.split(".").pop().toLowerCase())) continue;
+      const pages=await extract(file);
+      const id=crypto.randomUUID();
+      state.docs.push({id,name:file.name,type:file.type||"",pages,added:new Date().toISOString()});
+      saveDocs();
+    }catch(e){console.error(e);$("uploadStatus").textContent=`Upload failed: ${file.name} — ${e.message}`;$("uploadStatus").className="status bad"}
   }
-  return {...base,kind:'pdf',pages,text,data:bytesToB64(await f.arrayBuffer())};
- }
- const text=new TextDecoder().decode(await f.arrayBuffer());
- return {...base,kind:'text',pages:[{page:1,text}],text};
+  renderDocs(); if(state.docs.length)$("uploadStatus").textContent="Documents uploaded successfully."; $("uploadStatus").className="status good"; $("fileInput").value="";
 }
-function displayDocName(d){return d.displayName || d.name || 'Reference document';}
-async function renderList(){const docs=await allDocs();$('fileList').innerHTML=docs.length?docs.map(d=>`<div class="file"><div><div class="file-name">${esc(displayDocName(d))}</div><span class="pill">${fmt(d.size)} · ${esc(d.type)}</span></div><button class="btn danger" onclick="removeDoc(${d.id})">Delete</button></div>`).join(''):'<div class="hint">No material uploaded yet.</div>'}
-async function removeDoc(id){await delDoc(id);renderList()}
-function fmt(n){return n<1024?(n+' B'):n<1048576?((n/1024).toFixed(1)+' KB'):((n/1048576).toFixed(1)+' MB')}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function uploadFiles(files){
- const list=Array.from(files||[]);
- if(!list.length)return;
- const st=$('uploadStatus');
- st.className='status'; st.textContent='Preparing '+list.length+' file(s)…';
- let done=0;
- try{
-  if(!db) await openDB();
-  for(const f of list){
-   try{
-    st.textContent='Processing '+f.name+'…';
-    if(f.size>50*1024*1024)throw new Error('File is over 50 MB.');
-    const doc=await fileToDoc(f);
-    await addDoc(doc); done++;
-   }catch(e){st.textContent='Could not process '+f.name+': '+(e?.message||e);st.className='status err';}
+function renderDocs(){
+  const el=$("fileList"); if(!state.docs.length){el.innerHTML='<div class="muted">No documents stored yet.</div>';return}
+  el.innerHTML=state.docs.map(d=>`<div class="file-row"><div><div class="file-name">📄 ${esc(d.name)}</div><span class="badge">${d.pages.length} page${d.pages.length===1?"":"s"}</span></div><button class="danger" onclick="removeDoc('${d.id}')">Delete</button></div>`).join("");
+}
+function removeDoc(id){state.docs=state.docs.filter(d=>d.id!==id);saveDocs();renderDocs()}
+$("deleteAll").onclick=()=>{if(confirm("Delete all locally stored material?")){state.docs=[];saveDocs();renderDocs()}};
+
+function terms(q){return q.toLowerCase().replace(/[₹,.;:()\/\-]/g," ").split(/\s+/).filter(x=>x.length>2&&!["what","rate","please","tell","about","under","above","loan","group"].includes(x))}
+function retrieve(q){
+  const ts=terms(q);const hits=[];
+  for(const d of state.docs)for(const p of d.pages){
+    const text=p.text||"", low=text.toLowerCase();let score=0;
+    for(const t of ts){let i=low.indexOf(t);while(i>=0){score++;i=low.indexOf(t,i+t.length)}}
+    if(score)hits.push({d,p,score});
   }
-  await renderList();
-  if(done){st.textContent=done+' document(s) uploaded and stored locally ✓';st.className='status ok';}
- }catch(e){st.textContent='Upload failed: '+(e?.message||e);st.className='status err';}
- $('fileInput').value='';
+  hits.sort((a,b)=>b.score-a.score);return hits.slice(0,8);
 }
-async function getKey(){return await loadSetting('geminiApiKeyV14')}
-function setStatus(t,cls=''){ $('status').textContent=t;$('status').className='status '+cls}
-
-
-const SETTINGS_DB='rbiAssistantSettingsV18';
-let settingsDbPromise=null;
-function openSettingsDB(){
-  if(settingsDbPromise) return settingsDbPromise;
-  settingsDbPromise=new Promise((resolve,reject)=>{
-    const req=indexedDB.open(SETTINGS_DB,1);
-    req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('settings'))req.result.createObjectStore('settings',{keyPath:'key'});};
-    req.onsuccess=()=>resolve(req.result);
-    req.onerror=()=>reject(req.error||new Error('Could not open settings storage'));
-  });
-  return settingsDbPromise;
+function snippets(hit,q){
+  const text=hit.p.text||"", ts=terms(q);let pos=ts.length?Math.max(0,text.toLowerCase().indexOf(ts[0])):0;
+  if(pos<0)pos=0;const start=Math.max(0,pos-380);return text.slice(start,start+1200);
 }
-async function saveSetting(key,value){
-  const d=await openSettingsDB();
-  return new Promise((resolve,reject)=>{
-    const tx=d.transaction('settings','readwrite');
-    tx.objectStore('settings').put({key,value,updated:new Date().toISOString()});
-    tx.oncomplete=()=>resolve();
-    tx.onerror=()=>reject(tx.error||new Error('Could not save setting'));
-    tx.onabort=()=>reject(tx.error||new Error('Could not save setting'));
-  });
+function localAnswer(q,hits){
+  if(!hits.length)return {answer:"Not found in supplied material.",source:null,evidence:[]};
+  const evidence=hits.slice(0,5).map(h=>({name:h.d.name,page:h.p.page,text:snippets(h,q)}));
+  const joined=evidence.map(e=>e.text).join("\n");
+  let answer="";
+  // Compact extraction for common factual questions.
+  const rate=joined.match(/(?:interest rate|interest at|rate of interest)[^.]{0,180}?(\d+(?:\.\d+)?\s*%)(?:\s*per annum|\s*p\.a\.)?/i);
+  if(rate) answer=rate[1]+" per annum.";
+  if(!answer) answer=evidence[0].text.split(/(?<=[.!?])\s+/).slice(0,2).join(" ");
+  return {answer,source:evidence[0],evidence};
 }
-async function loadSetting(key){
-  const d=await openSettingsDB();
-  return new Promise((resolve,reject)=>{
-    const tx=d.transaction('settings','readonly');
-    const req=tx.objectStore('settings').get(key);
-    req.onsuccess=()=>resolve(req.result?.value||'');
-    req.onerror=()=>reject(req.error||new Error('Could not read setting'));
-  });
+async function gemini(q,hits){
+  const key=localStorage.getItem(KEYS.key);if(!key)throw new Error("No Gemini key saved. Use Document Search or add a key in Settings.");
+  const model=localStorage.getItem(KEYS.model)||"gemini-3.5-flash-lite";
+  const evidence=hits.slice(0,8).map((h,i)=>`EVIDENCE ${i+1} | ${h.d.name} | PDF page ${h.p.page}\n${snippets(h,q)}`).join("\n\n");
+  const prompt=`You are a document-grounded regulatory assistant.\nSTRICT EVIDENCE LOCK: Use ONLY the supplied evidence below. Never use outside knowledge. If the evidence does not establish the answer, say exactly "Not found in supplied material." Do not infer missing facts.\nPRECISION FORMAT: First line = direct answer to the question. Then, only if necessary, one short condition/clarification. Then SOURCE with document name, page and section/paragraph if explicitly available. Do not add general background.\nTERMINOLOGY LOCK: Never confuse loan amount, sanction amount, CCL, drawing power, outstanding balance, limit or corpus. If the question uses one term, answer for that term only.\nQuestion: ${q}\n\n${evidence}`;
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:500}})});
+  const data=await r.json();if(!r.ok)throw new Error(data?.error?.message||`HTTP ${r.status}`);
+  return {text:data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join("")||"No answer returned.",evidence:hits.slice(0,5)};
 }
-async function removeSetting(key){
-  const d=await openSettingsDB();
-  return new Promise((resolve,reject)=>{
-    const tx=d.transaction('settings','readwrite');
-    tx.objectStore('settings').delete(key);
-    tx.oncomplete=()=>resolve();
-    tx.onerror=()=>reject(tx.error||new Error('Could not remove setting'));
-    tx.onabort=()=>reject(tx.error||new Error('Could not remove setting'));
-  });
+function renderResult(res,ai=false){
+  const src=res.source||(res.evidence&&res.evidence[0]); let html=`<div class="answer-box"><h3>ANSWER</h3><div class="answer-text">${esc(ai?res.text:res.answer).replace(/\n/g,"<br>")}</div></div>`;
+  if(src)html+=`<div class="source-box"><h3>SOURCE</h3><div class="source-text">${esc(src.name)}, Page ${esc(src.page)}</div></div>`;
+  if(res.evidence?.length){html+=`<div class="evidence-box"><h3>EVIDENCE USED</h3>${res.evidence.slice(0,3).map((e,i)=>`<p><b>${i+1}. ${esc(e.name)} — Page ${esc(e.page)}</b><br>${esc(e.text)}</p>`).join("")}</div>`}
+  $("answerArea").innerHTML=html;
 }
-async function getKey(){
- const keys=['geminiApiKeyV18','geminiApiKeyV16','geminiApiKeyV13','rbiGeminiKeyV13'];
- for(const k of keys){
+$("askBtn").onclick=async()=>{
+  const q=$("question").value.trim();if(!q){$("askStatus").textContent="Enter a question.";return}
+  $("askBtn").disabled=true;$("askStatus").textContent="Retrieving relevant evidence…";$("askStatus").className="status muted";
   try{
-   const v=await loadSetting(k);
-   if(v){
-    if(k!=='geminiApiKeyV18') await saveSetting('geminiApiKeyV18',v);
-    return v;
-   }
-  }catch(e){}
- }
- try{
-  const legacy=localStorage.getItem('rbiGeminiKeyV13')||localStorage.getItem('geminiApiKeyV13');
-  if(legacy){
-   await saveSetting('geminiApiKeyV18',legacy);
-   return legacy;
-  }
- }catch(e){}
- return '';
-}
-const DEFAULT_GEMINI_MODEL='gemini-3.5-flash-lite';
-async function loadPreferredModel(){
- try{
-  const saved=await loadSetting('geminiModelV35');
-  const legacyMap={'gemini-2.5-flash':'gemini-3.5-flash-lite','gemini-2.5-flash-lite':'gemini-3.5-flash-lite','gemini-3.7-flash':'gemini-3.6-flash'};
-  const migrated=legacyMap[saved]||saved;
-  const allowed=['gemini-3.5-flash-lite','gemini-3.6-flash','gemini-3.5-flash'];
-  if(allowed.includes(migrated)){
-   if(migrated!==saved) await saveSetting('geminiModelV35',migrated);
-   return migrated;
-  }
- }catch(e){}
- return DEFAULT_GEMINI_MODEL;
-}
-async function setPreferredModel(model){
- const allowed=['gemini-3.5-flash-lite','gemini-3.6-flash','gemini-3.5-flash'];
- const value=allowed.includes(model)?model:DEFAULT_GEMINI_MODEL;
- await saveSetting('geminiModelV35',value);
-}
+    const hits=retrieve(q);
+    if(state.mode==="search"){const r=localAnswer(q,hits);renderResult(r);$("askStatus").textContent="Evidence retrieved locally — no Gemini used."}
+    else if(state.mode==="ai"){if(!hits.length){renderResult({answer:"Not found in supplied material.",source:null,evidence:[]});$("askStatus").textContent="No supporting evidence found."}else{const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="AI answer generated from retrieved evidence only."}}
+    else {if(hits.length&&localStorage.getItem(KEYS.key)){const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="AI answer generated from retrieved evidence only."}else{const r=localAnswer(q,hits);renderResult(r);$("askStatus").textContent="Evidence retrieved locally — no Gemini used."}}
+    $("askStatus").className="status good";
+  }catch(e){$("askStatus").textContent=e.message;$("askStatus").className="status bad";$("answerArea").innerHTML=`<div class="answer-box"><h3>ANSWER</h3><div class="answer-text">${esc(e.message)}</div></div>`}
+  $("askBtn").disabled=false;
+};
+$("clearBtn").onclick=()=>{$("question").value="";$("answerArea").innerHTML='<div class="muted">Your answer will appear here.</div>';$("askStatus").textContent=""};
 
-function norm(s){
- return String(s||'').toLowerCase()
-  .replace(/[^\p{L}\p{N}]+/gu,' ')
-  .replace(/\s+/g,' ').trim();
-}
-function expandTerms(q){
- const base=norm(q).split(' ').filter(x=>x.length>1);
- const out=new Set(base);
- const aliases={
-  kcc:['kisan','credit','card','agriculture','farmer','crop','loan'],
-  npa:['non','performing','asset'],
-  wma:['ways','means','advances'],
-  msme:['micro','small','medium','enterprise'],
-  shg:['self','help','group'],
-  crr:['cash','reserve','ratio'],
-  slr:['statutory','liquidity','ratio'],
-  roi:['rate','interest'],
-  aml:['anti','money','laundering'],
-  ckyc:['central','know','your','customer']
- };
- base.forEach(t=>(aliases[t]||[]).forEach(x=>out.add(x)));
- return [...out];
-}
-const SEARCH_STOPWORDS=new Set([
- 'what','is','are','was','were','the','a','an','of','to','for','on','in','by',
- 'this','that','these','those','it','its','from','with','and','or','do','does',
- 'did','how','many','much','can','could','would','should','please','tell','me',
- 'required','requirement','provision','violation','penalty','branch'
-]);
-function meaningfulQueryTerms(q){
- return norm(q).split(' ').filter(t=>t.length>2&&!SEARCH_STOPWORDS.has(t));
-}
-function isContextOnlyQuestion(q){
- const n=norm(q);
- return /\b(this|that|the) (violation|provision|requirement|rule|penalty)\b/.test(n) ||
-        /\b(what|which) (is|was) (the )?(penalty|punishment)\b/.test(n) && meaningfulQueryTerms(q).length<2;
-}
-function scorePage(text,q){
- const low=norm(text), original=meaningfulQueryTerms(q);
- if(!original.length) return 0;
- const terms=expandTerms(q).filter(t=>!SEARCH_STOPWORDS.has(t));
- let score=0, exactCount=0;
- for(const t of terms){
-  if(low.includes(t)){
-   if(original.includes(t)){ score+=3; exactCount++; }
-   else score+=0.5;
-  }
- }
- const phrase=norm(q);
- if(phrase && low.includes(phrase)) score+=10;
- // A page must contain at least one substantive user-supplied term.
- // Generic words such as "violation" must never retrieve an unrelated page.
- if(exactCount===0) return 0;
- return score;
-}
-function localEvidence(docs,q){
- if(isContextOnlyQuestion(q)) return [];
- const hits=[];
- const original=meaningfulQueryTerms(q);
- for(const d of docs){
-  const pages=d.pages||[];
-  for(const pg of pages){
-   const txt=pg.text||'';
-   const score=scorePage(txt,q);
-   if(score>=3){
-    const low=norm(txt), terms=expandTerms(q).filter(t=>!SEARCH_STOPWORDS.has(t));
-    const pos=terms.map(t=>low.indexOf(t)).filter(x=>x>=0);
-    const start=Math.max(0,(pos.length?Math.min(...pos):0)-650);
-    hits.push({score,page:pg.page,name:displayDocName(d),text:txt.slice(start,start+2200)});
-   }
-  }
- }
- hits.sort((x,y)=>y.score-x.score);
- return hits.slice(0,12);
-}
-async function ocrPdfIfNeeded(d){
- if(d.kind!=='pdf'||(d.pages||[]).some(p=>(p.text||'').length>80))return d;
- const pdfjs=await window.PDFJS_READY;
- const T=await window.TESSERACT_READY;
- if(!pdfjs||!T)return d;
- const raw=Uint8Array.from(atob(d.data||''),c=>c.charCodeAt(0)); const pdf=await pdfjs.getDocument({data:raw}).promise;
- const pages=[];
- const worker=await T.createWorker('eng');
- for(let n=1;n<=pdf.numPages;n++){
-  setStatus('OCR processing PDF page '+n+' of '+pdf.numPages+'…');
-  const page=await pdf.getPage(n);
-  const vp=page.getViewport({scale:1.6});
-  const canvas=document.createElement('canvas');
-  canvas.width=Math.ceil(vp.width);canvas.height=Math.ceil(vp.height);
-  await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-  const res=await worker.recognize(canvas);
-  pages.push({page:n,text:(res.data.text||'').replace(/\s+/g,' ').trim()});
- }
- await worker.terminate();
- d.pages=pages; d.text=pages.map(p=>`[PAGE ${p.page}]\n${p.text}`).join('\n');
- return d;
-}
-
-function formatEvidence(evidence){
- return evidence.map((e,i)=>`EVIDENCE ${i+1}
-
-📄 ${e.name}
-📍 Page ${e.page}
-
-${e.text}`).join('\n\n────────────────────────\n\n');
-}
-async function fetchWithTimeout(url,options={},timeoutMs=25000){
- const controller=new AbortController();
- const timer=setTimeout(()=>controller.abort(),timeoutMs);
- try{
-  return await fetch(url,{...options,signal:controller.signal});
- }catch(e){
-  if(e.name==='AbortError') throw new Error('Gemini request timed out after 25 seconds. Check the API key, model and internet connection.');
-  throw e;
- }finally{clearTimeout(timer)}
-}
-function escHtml(t){
- return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function enforceUnsupportedAnswerLock(text){
- const t=String(text||'');
- const unsupported=/\bnot found in the supplied material\b/i.test(t);
- if(!unsupported) return t;
- return `ANSWER:
-Not found in the supplied material.
-
-REGULATORY POSITION:
-The supplied material does not establish the requested answer.
-
-SOURCE:
-No supporting source was identified for the requested answer.
-
-EVIDENCE:
-No supporting evidence establishing the requested answer was identified.
-
-PRACTICAL IMPLICATION:
-Not found in the supplied material.
-
-CONFIDENCE:
-Insufficient — the supplied material does not establish the answer.`;
-}
-function renderAIAnswer(text){
- const safe=escHtml(text).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
- const sections=safe.split(/\n(?=(?:ANSWER|REGULATORY POSITION|SOURCE|EVIDENCE|PRACTICAL IMPLICATION|CONFIDENCE)\s*:)/i);
- return sections.map(part=>{
-  const m=part.match(/^(ANSWER|REGULATORY POSITION|SOURCE|EVIDENCE|PRACTICAL IMPLICATION|CONFIDENCE)\s*:\s*([\s\S]*)$/i);
-  if(!m) return '<div class="ai-text">'+part.replace(/\n/g,'<br>')+'</div>';
-  return '<div class="ai-section"><div class="ai-section-title">'+m[1].toUpperCase()+
-         '</div><div class="ai-section-body">'+m[2].trim().replace(/\n/g,'<br>')+
-         '</div></div>';
- }).join('');
-}
-
-async function callGeminiWithRetry({model,key,body,maxAttempts=3}){
- const models=[model];
- // If the selected Flash model is temporarily overloaded, try the lighter
- // supported Flash-Lite model without changing the evidence or prompt.
- if(model==='gemini-2.5-flash') models.push('gemini-2.5-flash-lite');
- if(model==='gemini-3.7-flash') models.push('gemini-2.5-flash-lite');
-
- let lastError=null;
- for(const mdl of models){
-  const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(mdl)+':generateContent';
-  for(let attempt=1;attempt<=maxAttempts;attempt++){
-   try{
-    const r=await fetchWithTimeout(url,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-goog-api-key':key},
-      body:JSON.stringify(body)
-    });
-    const j=await r.json().catch(()=>({}));
-    if(r.ok) return {response:j,model:mdl,attempt};
-    const msg=(j?.error?.message||'Gemini API error')+' [HTTP '+r.status+']';
-    lastError=new Error(msg);
-    if(![429,500,502,503,504].includes(r.status)) throw lastError;
-    if(attempt<maxAttempts){
-      $('answer').textContent='Gemini is temporarily busy. Retrying ('+(attempt+1)+'/'+maxAttempts+')…';
-      await new Promise(res=>setTimeout(res,1200*Math.pow(2,attempt-1)));
-    }
-   }catch(e){
-    lastError=e;
-    // Browser/network errors should not be hidden behind retries.
-    if(!/HTTP (429|500|502|503|504)/.test(e.message||'')) throw e;
-   }
-  }
- }
- throw lastError||new Error('Gemini request failed.');
-}
-
-async function ask(){
- const q=$('question').value.trim(),docs=await allDocs(),mode=window.answerMode||'auto';
- if(!q){setStatus('Please enter a question.','err');return}
- if(!docs.length){setStatus('Please upload at least one reference document.','err');return}
- $('askBtn').disabled=true;$('answerCard').style.display='block';$('answer').textContent='Retrieving relevant evidence…';
- try{
-  // Search extracted PDF/text first. If PDFs have no selectable text, explain that clearly.
-  for(const d of docs){ if(d.kind==='pdf'&&(d.pages||[]).every(p=>(p.text||'').trim().length<20)){ try{ await ocrPdfIfNeeded(d); }catch(e){ console.warn('OCR skipped',e); } } }
-  const evidence=localEvidence(docs,q);
-  if(!evidence.length){
-   const pdfs=docs.filter(d=>d.kind==='pdf');
-   const emptyPages=pdfs.filter(d=>(d.pages||[]).every(p=>(p.text||'').trim().length<20));
-   if(emptyPages.length){
-    $('answer').textContent='No text could be extracted from the uploaded PDF material.\n\nThis PDF appears to be scanned/image-based. The no-AI search needs OCR for this document before it can search the provisions.\n\nDocument(s):\n'+emptyPages.map(d=>'• '+displayDocName(d)).join('\n');
-    setStatus('PDF appears scanned — text extraction returned no usable text.','err');return;
-   }
-   const contextOnly=isContextOnlyQuestion(q);
-   $('answer').textContent=contextOnly
-    ? 'Not found in the supplied material.\n\nThe question refers to “this violation/provision” without identifying the provision. Please mention the specific provision, subject or section you want checked.'
-    : 'Not found in the supplied material.\n\nNo sufficiently matching passage was found for the specific question.';
-   setStatus(contextOnly?'Please specify the provision or subject.':'No supporting evidence found in the supplied material.','ok');return;
-  }
-
-  const evidenceText=formatEvidence(evidence);
-
-  if(mode==='search'||(mode==='auto'&&!(await getKey()))){
-   $('answer').textContent='DOCUMENT SEARCH — NO AI\n\n'+evidenceText+'\n\nCONCLUSION\nThe passages above were retrieved directly from your supplied material. No Gemini was used.';
-   setStatus('Evidence retrieved locally — no Gemini used.','ok');return;
-  }
-
-  const key=await getKey();
-  if(!key){setStatus('No Gemini key saved. Use Document Search or add a key in Settings.','err');return}
-  const system=`You are a strict document-grounded regulatory and knowledge assistant.
-
-DIRECT-ANSWER POLICY:
-- Answer the user's exact question first.
-- Be concise and to the point.
-- For a straightforward factual question, normally use 1-3 sentences and preferably under 50 words.
-- Normal maximum answer length is 150 words unless the question genuinely requires more.
-- Do not repeat the question.
-- Do not add background, history, generic explanations or unrelated information.
-- If the question asks for a number, rate, limit, period, eligibility, requirement or condition, put the answer first.
-- Use short bullets or a small table only when multiple conditions make it clearer.
-- Give a short "Why" only when it materially helps.
-- Give the source as: document name + page + section/paragraph when established by the evidence.
-- Use ONLY the supplied/retrieved evidence. Do not use internet search, outside knowledge, memory or assumptions.
-- If the supplied material does not establish the answer, say exactly: "Not found in the supplied material."
-- Do not provide a partial answer merely because related material exists.
-- Never invent a source, page, section, figure, rate or condition.
-
-PREFERRED OUTPUT:
-ANSWER:
-[direct answer]
-
-SOURCE:
-[document name, page and section/paragraph, if established]
-
-Only include WHY or additional detail when necessary to answer the question accurately.
-
-FINAL CHECK:
-Every substantive statement must be supported by the supplied evidence.`
-
-  const model=$('model').value;
-  const responseStyle=$('responseStyle')?.value||'concise';
-  const body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts:[{text:`RESPONSE STYLE: ${responseStyle==='concise'?'CONCISE — answer directly and briefly.':'DETAILED — explain only where necessary.'}\n\nUSER QUESTION:\n${q}\n\nSUPPLIED EVIDENCE ONLY:\n${evidenceText}`}]}],generationConfig:{maxOutputTokens:responseStyle==='concise'?700:1800}};
-  $('answer').textContent='Generating answer from retrieved evidence…';
-  const result=await callGeminiWithRetry({model,key,body,maxAttempts:3});
-  const j=result.response;
-  if(result.model!==model) setStatus('Selected model was busy; answer generated using '+result.model+'.','ok');
-  const rawAnswer=j?.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'No answer returned.';
-  $('answer').innerHTML=renderAIAnswer(enforceUnsupportedAnswerLock(rawAnswer));
-  if(result.model===model) setStatus('AI answer generated from retrieved evidence only.','ok');
- }catch(e){$('answer').textContent='AI request failed: '+e.message;setStatus(e.message,'err')}finally{$('askBtn').disabled=false}
-}
-$('askBtn').onclick=ask;
-$('clearBtn').onclick=()=>{$('question').value='';$('answerCard').style.display='none';setStatus('')};
-
-$('saveKey').onclick=async()=>{
- const k=$('apiKey').value.trim();
- if(!k){$('keyStatus').textContent='Enter a key first.';$('keyStatus').className='status err';return}
- try{
-  await saveSetting('geminiApiKeyV18',k);
-  $('keyStatus').textContent='API key saved ✓';
-  $('keyStatus').className='status ok';
-  $('apiKey').value='';
-  $('apiKey').placeholder='API key saved — enter a new key to replace it';
- }catch(e){
-  $('keyStatus').textContent='Could not save key: '+e.message;
-  $('keyStatus').className='status err';
- }
+$("saveKey").onclick=()=>{const k=$("apiKey").value.trim();if(!k){$("keyStatus").textContent="Enter an API key.";return}localStorage.setItem(KEYS.key,k);$("keyStatus").textContent="API key saved.";$("keyStatus").className="status good"};
+$("removeKey").onclick=()=>{localStorage.removeItem(KEYS.key);$("apiKey").value="";$("keyStatus").textContent="API key removed.";$("keyStatus").className="status muted"};
+$("model").onchange=()=>{localStorage.setItem(KEYS.model,$("model").value);$("modelStatus").textContent="Model selection saved in this browser."};
+$("testKey").onclick=async()=>{
+ const k=localStorage.getItem(KEYS.key);if(!k){$("keyStatus").textContent="No Gemini key saved.";$("keyStatus").className="status bad";return}
+ $("keyStatus").textContent="Testing connection…";$("keyStatus").className="status muted";
+ try{const model=localStorage.getItem(KEYS.model)||"gemini-3.5-flash-lite";const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(k)}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:"Reply only: OK"}]}],generationConfig:{maxOutputTokens:10}})});const d=await r.json();if(!r.ok)throw new Error(d?.error?.message||`HTTP ${r.status}`);$("keyStatus").textContent="Connection successful. Gemini is responding.";$("keyStatus").className="status good"}catch(e){$("keyStatus").textContent=e.message;$("keyStatus").className="status bad"}
 };
 
-$('removeKey').onclick=async()=>{
- try{
-  await removeSetting('geminiApiKeyV18');
-  $('keyStatus').textContent='API key removed.';
-  $('keyStatus').className='status';
-  $('apiKey').value='';
-  $('apiKey').placeholder='Paste your Gemini API key';
- }catch(e){
-  $('keyStatus').textContent='Could not remove key: '+e.message;
-  $('keyStatus').className='status err';
- }
-};
-
-$('fileInput').addEventListener('change',e=>uploadFiles(e.target.files));
-$('clearLibrary').onclick=async()=>{if(confirm('Delete all locally stored reference material?')){await clearDocs();renderList()}};
-$('speakAnswer').onclick=()=>{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance($('answer').textContent);u.lang=/[\u0900-\u097F]/.test(u.text)?'hi-IN':'en-IN';u.rate=.95;speechSynthesis.speak(u)};
-$('stopSpeak').onclick=()=>speechSynthesis.cancel();
-let activeRecognition=null;
-$('micBtn').onclick=()=>{
+$("speakBtn").onclick=()=>{
+ if(!("webkitSpeechRecognition" in window||"SpeechRecognition" in window)){$("askStatus").textContent="Voice input is not supported by this browser.";return}
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){
-  setStatus('Voice input is not supported by this browser. Try Safari/Chrome with microphone permission.','err');
-  return;
- }
- if(activeRecognition){
-  try{activeRecognition.stop()}catch(e){}
-  activeRecognition=null;
-  setStatus('Voice input stopped.');
-  return;
- }
- const r=new SR();
- activeRecognition=r;
- r.lang='en-IN';
- r.interimResults=false;
- r.continuous=false;
- r.maxAlternatives=1;
- r.onstart=()=>{
-  $('micBtn').textContent='⏹ Stop listening';
-  setStatus('Listening… speak your question now.','ok');
- };
- r.onresult=e=>{
-  const text=e.results?.[0]?.[0]?.transcript?.trim()||'';
-  if(text){
-   $('question').value=text;
-   setStatus('Voice question captured.','ok');
-  }else{
-   setStatus('No speech was detected. Please tap Speak and try again.','err');
-  }
- };
- r.onerror=e=>{
-  const code=e?.error||'unknown';
-  if(code==='aborted'){
-   setStatus('Voice input stopped. Tap Speak again to retry.','err');
-  }else if(code==='not-allowed'||code==='service-not-allowed'){
-   setStatus('Microphone permission is blocked. Allow microphone access for this browser, then try again.','err');
-  }else if(code==='no-speech'){
-   setStatus('No speech detected. Tap Speak and speak clearly.','err');
-  }else{
-   setStatus('Voice input error: '+code+'. Tap Speak and try again.','err');
-  }
- };
- r.onend=()=>{
-  $('micBtn').textContent='🎙 Speak';
-  activeRecognition=null;
- };
- try{r.start()}catch(e){
-  activeRecognition=null;
-  $('micBtn').textContent='🎙 Speak';
-  setStatus('Could not start voice input. Tap Speak again.','err');
- }
+ if(state.recognition){state.recognition.stop();state.recognition=null;return}
+ const r=new SR();r.lang="en-IN";r.interimResults=false;r.continuous=false;
+ r.onstart=()=>{$("askStatus").textContent="Listening…";$("askStatus").className="status muted"};
+ r.onresult=e=>{$("question").value=e.results[0][0].transcript};
+ r.onerror=e=>{$("askStatus").textContent="Voice input error: "+e.error;$("askStatus").className="status bad"};
+ r.onend=()=>{state.recognition=null;if(!$("askStatus").textContent.startsWith("Voice input error"))$("askStatus").textContent=""};state.recognition=r;r.start()
 };
 
-function showPage(pageId){
- const pages=document.querySelectorAll('.page');
- const tabs=document.querySelectorAll('nav button[data-page]');
- pages.forEach(p=>p.classList.toggle('active',p.id===pageId));
- tabs.forEach(t=>t.classList.toggle('active',t.dataset.page===pageId));
-}
-document.addEventListener('click',function(e){
- const b=e.target.closest('nav button[data-page]');
- if(!b)return;
- e.preventDefault();
- showPage(b.dataset.page);
-});
-getKey().then(k=>{
- if(k){
-  $('apiKey').placeholder='API key saved — enter a new key to replace it';
-  $('keyStatus').textContent='API key saved ✓';
-  $('keyStatus').className='status ok';
- }
-}).catch(()=>{});
-window.answerMode='auto';
-document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{
- document.querySelectorAll('.mode').forEach(x=>{x.classList.remove('active');x.classList.remove('secondary');x.classList.add('ghost')});
- b.classList.add('active');b.classList.remove('ghost');b.classList.add('secondary');
- window.answerMode=b.dataset.mode;
-});
-$('responseStyle')?.addEventListener('change',async()=>{
- try{
-  await saveSetting('responseStyleV37',$('responseStyle').value);
- }catch(e){}
-});
-loadSetting('responseStyleV37').then(v=>{
- if(v && $('responseStyle')) $('responseStyle').value=v;
-}).catch(()=>{});
-
-$('model').addEventListener('change',async()=>{
- try{
-  await setPreferredModel($('model').value);
-  $('keyStatus').textContent='Model preference saved: '+$('model').selectedOptions[0].text;
-  $('keyStatus').className='status ok';
- }catch(e){
-  $('keyStatus').textContent='Could not save model preference: '+e.message;
-  $('keyStatus').className='status err';
- }
-});
-loadPreferredModel().then(model=>{
- $('model').value=model;
-}).catch(()=>{
- $('model').value=DEFAULT_GEMINI_MODEL;
-});
-
-$('testKey').onclick=async()=>{
- const key=await getKey();
- if(!key){$('keyStatus').textContent='No API key saved.';$('keyStatus').className='status err';return}
- $('keyStatus').textContent='Testing…';
- try{
-  const model=$('model').value;
-  const u='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent';
-  const r=await fetchWithTimeout(u,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:'Reply only with: CONNECTION OK'}]}],generationConfig:{maxOutputTokens:20}})});
-  const j=await r.json();
-  if(!r.ok)throw new Error((j?.error?.message||'API error')+' [HTTP '+r.status+']');
-  $('keyStatus').textContent='Connection successful. Gemini is responding.';
-  $('keyStatus').className='status ok';
- }catch(e){
-  $('keyStatus').textContent='Connection failed: '+e.message;
-  $('keyStatus').className='status err';
- }
-};
-openDB().then(renderList).catch(e=>{const st=$('uploadStatus');if(st){st.textContent='Local storage error: '+e.message;st.className='status err'}}); showPage('ask'); showPage('ask');
+load();
 </script>
 </body>
 </html>
