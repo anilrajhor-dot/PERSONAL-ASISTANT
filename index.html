@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v2.0</title>
+<title>RBI Regulatory Assistant v2.1</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -33,10 +33,20 @@ window.PDFJS_READY=(async function(){
   window.pdfjsLib=m; return m;
  }catch(e){console.warn('PDF.js load failed',e);return null;}
 })();
-</script></head>
+</script>
+<script>
+window.TESSERACT_READY=(async function(){
+ if(window.Tesseract)return window.Tesseract;
+ try{
+  const m=await import('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/+esm');
+  window.Tesseract=m; return m;
+ }catch(e){console.warn('OCR engine could not be loaded',e);return null;}
+})();
+</script>
+</head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v2.0</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v2.1</div></div></div>
  <nav>
   <button type="button" class="active" data-page="ask">Ask RBI</button>
   <button type="button" data-page="library">Knowledge Library</button>
@@ -88,7 +98,7 @@ window.PDFJS_READY=(async function(){
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v2.0 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v2.1 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
@@ -99,7 +109,7 @@ window.PDFJS_READY=(async function(){
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v2.0</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v2.1</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -111,13 +121,13 @@ window.PDFJS_READY=(async function(){
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v2.0 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v2.1 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v2.0. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v2.1. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -162,7 +172,7 @@ async function fileToDoc(f){
    const txt=tc.items.map(x=>x.str||'').join(' ').replace(/\s+/g,' ').trim();
    pages.push({page:n,text:txt}); text+=`[PAGE ${n}]\n${txt}\n`;
   }
-  return {...base,kind:'pdf',pages,text};
+  return {...base,kind:'pdf',pages,text,data:bytesToB64(await f.arrayBuffer())};
  }
  const text=new TextDecoder().decode(await f.arrayBuffer());
  return {...base,kind:'text',pages:[{page:1,text}],text};
@@ -171,7 +181,7 @@ async function renderList(){const docs=await allDocs();$('fileList').innerHTML=d
 async function removeDoc(id){await delDoc(id);renderList()}
 function fmt(n){return n<1024?(n+' B'):n<1048576?((n/1024).toFixed(1)+' KB'):((n/1048576).toFixed(1)+' MB')}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function uploadFiles(files){for(const f of files){if(f.size>50*1024*1024 && (f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'))){alert(f.name+' is over 50 MB and cannot be sent inline in v1.');continue}await addDoc(await fileToDoc(f))}await renderList()}
+async function uploadFiles(files){for(const f of files){if(f.size>50*1024*1024 && (f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'))){alert(f.name+' is over 50 MB and cannot be sent inline in v2.1.');continue}await addDoc(await fileToDoc(f))}await renderList()}
 async function getKey(){return await loadSetting('geminiApiKeyV14')}
 function setStatus(t,cls=''){ $('status').textContent=t;$('status').className='status '+cls}
 
@@ -219,36 +229,107 @@ async function removeSetting(key){
 }
 async function getKey(){return await loadSetting('geminiApiKeyV18');}
 
+function norm(s){
+ return String(s||'').toLowerCase()
+  .replace(/[^\p{L}\p{N}]+/gu,' ')
+  .replace(/\s+/g,' ').trim();
+}
+function expandTerms(q){
+ const base=norm(q).split(' ').filter(x=>x.length>1);
+ const out=new Set(base);
+ const aliases={
+  kcc:['kisan','credit','card','agriculture','farmer','crop','loan'],
+  npa:['non','performing','asset'],
+  wma:['ways','means','advances'],
+  msme:['micro','small','medium','enterprise'],
+  shg:['self','help','group'],
+  crr:['cash','reserve','ratio'],
+  slr:['statutory','liquidity','ratio'],
+  roi:['rate','interest'],
+  aml:['anti','money','laundering'],
+  ckyc:['central','know','your','customer']
+ };
+ base.forEach(t=>(aliases[t]||[]).forEach(x=>out.add(x)));
+ return [...out];
+}
+function scorePage(text,q){
+ const low=norm(text), terms=expandTerms(q);
+ let score=0;
+ for(const t of terms){
+  if(low.includes(t)) score += (norm(q).includes(t)?2:1);
+ }
+ const phrase=norm(q);
+ if(phrase && low.includes(phrase)) score+=8;
+ return score;
+}
+function localEvidence(docs,q){
+ const hits=[];
+ for(const d of docs){
+  const pages=d.pages||[];
+  for(const pg of pages){
+   const txt=pg.text||'';
+   const score=scorePage(txt,q);
+   if(score>0){
+    const low=norm(txt), terms=expandTerms(q);
+    const pos=terms.map(t=>low.indexOf(t)).filter(x=>x>=0);
+    const start=Math.max(0,(pos.length?Math.min(...pos):0)-650);
+    hits.push({score,page:pg.page,name:d.name,text:txt.slice(start,start+2200)});
+   }
+  }
+ }
+ hits.sort((x,y)=>y.score-x.score);
+ return hits.slice(0,12);
+}
+async function ocrPdfIfNeeded(d){
+ if(d.kind!=='pdf'||(d.pages||[]).some(p=>(p.text||'').length>80))return d;
+ const pdfjs=await window.PDFJS_READY;
+ const T=await window.TESSERACT_READY;
+ if(!pdfjs||!T)return d;
+ const raw=Uint8Array.from(atob(d.data||''),c=>c.charCodeAt(0)); const pdf=await pdfjs.getDocument({data:raw}).promise;
+ const pages=[];
+ const worker=await T.createWorker('eng');
+ for(let n=1;n<=pdf.numPages;n++){
+  setStatus('OCR processing PDF page '+n+' of '+pdf.numPages+'…');
+  const page=await pdf.getPage(n);
+  const vp=page.getViewport({scale:1.6});
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.ceil(vp.width);canvas.height=Math.ceil(vp.height);
+  await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+  const res=await worker.recognize(canvas);
+  pages.push({page:n,text:(res.data.text||'').replace(/\s+/g,' ').trim()});
+ }
+ await worker.terminate();
+ d.pages=pages; d.text=pages.map(p=>`[PAGE ${p.page}]\n${p.text}`).join('\n');
+ return d;
+}
+
 async function ask(){
  const q=$('question').value.trim(),docs=await allDocs(),mode=window.answerMode||'auto';
  if(!q){setStatus('Please enter a question.','err');return}
  if(!docs.length){setStatus('Please upload at least one reference document.','err');return}
  $('askBtn').disabled=true;$('answerCard').style.display='block';$('answer').textContent='Retrieving relevant evidence…';
  try{
-  const terms=q.toLowerCase().split(/\W+/).filter(x=>x.length>2), evidence=[];
-  for(const d of docs){
-   const pages=d.pages||[];
-   for(const pg of pages){
-    const low=(pg.text||'').toLowerCase(); let score=0;
-    for(const t of terms)if(low.includes(t))score++;
-    if(score){
-     const pos=terms.map(t=>low.indexOf(t)).filter(x=>x>=0);
-     const start=Math.max(0,(pos.length?Math.min(...pos):0)-500);
-     evidence.push({score,page:pg.page,name:d.name,text:(pg.text||'').slice(start,start+1800)});
-    }
+  // Search extracted PDF/text first. If PDFs have no selectable text, explain that clearly.
+  for(const d of docs){ if(d.kind==='pdf'&&(d.pages||[]).every(p=>(p.text||'').trim().length<20)){ try{ await ocrPdfIfNeeded(d); }catch(e){ console.warn('OCR skipped',e); } } }
+  const evidence=localEvidence(docs,q);
+  if(!evidence.length){
+   const pdfs=docs.filter(d=>d.kind==='pdf');
+   const emptyPages=pdfs.filter(d=>(d.pages||[]).every(p=>(p.text||'').trim().length<20));
+   if(emptyPages.length){
+    $('answer').textContent='No text could be extracted from the uploaded PDF material.\n\nThis PDF appears to be scanned/image-based. The no-AI search needs OCR for this document before it can search the provisions.\n\nDocument(s):\n'+emptyPages.map(d=>'• '+d.name).join('\n');
+    setStatus('PDF appears scanned — text extraction returned no usable text.','err');return;
    }
-  }
-  evidence.sort((a,b)=>b.score-a.score);
-  const top=evidence.slice(0,12);
-  if(!top.length){
    $('answer').textContent='I could not find sufficient information to answer this question in the material provided.\n\nEVIDENCE USED\nNo sufficiently matching passage was found.';
    setStatus('No supporting evidence found in the supplied material.','ok');return;
   }
-  const evidenceText=top.map((e,i)=>`EVIDENCE ${i+1}\nDocument: ${e.name}\nPage: ${e.page}\nText:\n${e.text}`).join('\n\n---\n\n');
+
+  const evidenceText=evidence.map((e,i)=>`EVIDENCE ${i+1}\nDocument: ${e.name}\nPage: ${e.page}\nText:\n${e.text}`).join('\n\n---\n\n');
+
   if(mode==='search'||(mode==='auto'&&!(await getKey()))){
-   $('answer').textContent='DOCUMENT SEARCH — NO AI\n\nThe following passages were retrieved from your supplied material.\n\n'+evidenceText+'\n\nCONCLUSION\nReview the evidence above for the exact regulatory wording.';
+   $('answer').textContent='DOCUMENT SEARCH — NO AI\n\n'+evidenceText+'\n\nCONCLUSION\nThe passages above were retrieved directly from your supplied material. No Gemini was used.';
    setStatus('Evidence retrieved locally — no Gemini used.','ok');return;
   }
+
   const key=await getKey();
   if(!key){setStatus('No Gemini key saved. Use Document Search or add a key in Settings.','err');return}
   const system=`You are an evidence-bound RBI Regulatory Assistant. Answer ONLY from the evidence passages supplied. Do not use model memory, general RBI knowledge, internet information or assumptions. If evidence does not establish the answer, say: "I could not find sufficient information to answer this question in the material provided." Never invent citations, quotations, page numbers or regulatory requirements. If evidence conflicts, identify the conflict. Return ANSWER, EXPLANATION, EVIDENCE USED, SOURCE, PRACTICAL IMPLICATION, CONFIDENCE.`;
