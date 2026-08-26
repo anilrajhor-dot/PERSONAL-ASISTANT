@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v3.9</title>
+<title>RBI Regulatory Assistant v3.10</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -62,7 +62,7 @@ window.TESSERACT_READY=(async function(){
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.9</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.10</div></div></div>
  <nav>
   <button type="button" class="active" data-page="ask">Ask RBI</button>
   <button type="button" data-page="library">Knowledge Library</button>
@@ -129,18 +129,18 @@ Strict Evidence Lock:</strong> the assistant uses only documents stored in this 
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.9 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.10 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. It is retained when you move between app versions on this device. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
   <div class="row" style="margin-top:10px"><button class="btn primary" id="saveKey">Save key</button><button class="btn danger" id="removeKey">Remove key</button></div>
   <div id="keyStatus" class="status"></div><div class="row" style="margin-top:10px"><button class="btn secondary" id="testKey">Test Gemini connection</button></div>
-  <h3>Model</h3><div class="hint">Gemini 2.5 Flash is the default and your selection is saved in this browser.</div>
-  <select id="model"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-3.7-flash">Gemini 3.7 Flash</option><option value="gemini-3.6-flash">Gemini 3.6 Flash</option></select>
+  <h3>Model</h3><div class="hint">Gemini 3.5 Flash-Lite is the default and your selection is saved in this browser. Older saved 2.5/3.7 selections are automatically migrated.</div>
+  <select id="model"><option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite — Recommended</option><option value="gemini-3.6-flash">Gemini 3.6 Flash</option><option value="gemini-3.5-flash">Gemini 3.5 Flash</option></select>
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v3.9</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v3.10</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -152,13 +152,13 @@ Strict Evidence Lock:</strong> the assistant uses only documents stored in this 
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v3.9 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v3.10 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v3.9. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v3.10. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -299,17 +299,22 @@ async function getKey(){
  }catch(e){}
  return '';
 }
-const DEFAULT_GEMINI_MODEL='gemini-2.5-flash';
+const DEFAULT_GEMINI_MODEL='gemini-3.5-flash-lite';
 async function loadPreferredModel(){
  try{
   const saved=await loadSetting('geminiModelV35');
-  const allowed=['gemini-2.5-flash','gemini-3.7-flash','gemini-3.6-flash'];
-  if(allowed.includes(saved)) return saved;
+  const legacyMap={'gemini-2.5-flash':'gemini-3.5-flash-lite','gemini-2.5-flash-lite':'gemini-3.5-flash-lite','gemini-3.7-flash':'gemini-3.6-flash'};
+  const migrated=legacyMap[saved]||saved;
+  const allowed=['gemini-3.5-flash-lite','gemini-3.6-flash','gemini-3.5-flash'];
+  if(allowed.includes(migrated)){
+   if(migrated!==saved) await saveSetting('geminiModelV35',migrated);
+   return migrated;
+  }
  }catch(e){}
  return DEFAULT_GEMINI_MODEL;
 }
 async function setPreferredModel(model){
- const allowed=['gemini-2.5-flash','gemini-3.7-flash','gemini-3.6-flash'];
+ const allowed=['gemini-3.5-flash-lite','gemini-3.6-flash','gemini-3.5-flash'];
  const value=allowed.includes(model)?model:DEFAULT_GEMINI_MODEL;
  await saveSetting('geminiModelV35',value);
 }
