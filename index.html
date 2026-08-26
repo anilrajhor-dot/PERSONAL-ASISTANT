@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v3.5</title>
+<title>RBI Regulatory Assistant v3.6</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -51,7 +51,7 @@ window.TESSERACT_READY=(async function(){
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.5</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.6</div></div></div>
  <nav>
   <button type="button" class="active" data-page="ask">Ask RBI</button>
   <button type="button" data-page="library">Knowledge Library</button>
@@ -108,18 +108,18 @@ window.TESSERACT_READY=(async function(){
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.5 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.6 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. It is retained when you move between app versions on this device. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
   <div class="row" style="margin-top:10px"><button class="btn primary" id="saveKey">Save key</button><button class="btn danger" id="removeKey">Remove key</button></div>
   <div id="keyStatus" class="status"></div><div class="row" style="margin-top:10px"><button class="btn secondary" id="testKey">Test Gemini connection</button></div>
-  <h3>Model</h3>
+  <h3>Model</h3><div class="hint">Gemini 2.5 Flash is the default and your selection is saved in this browser.</div>
   <select id="model"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-3.7-flash">Gemini 3.7 Flash</option><option value="gemini-3.6-flash">Gemini 3.6 Flash</option></select>
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v3.5</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v3.6</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -131,13 +131,13 @@ window.TESSERACT_READY=(async function(){
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v3.5 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v3.6 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v3.5. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v3.6. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -604,7 +604,61 @@ $('fileInput').addEventListener('change',e=>uploadFiles(e.target.files));
 $('clearLibrary').onclick=async()=>{if(confirm('Delete all locally stored reference material?')){await clearDocs();renderList()}};
 $('speakAnswer').onclick=()=>{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance($('answer').textContent);u.lang=/[\u0900-\u097F]/.test(u.text)?'hi-IN':'en-IN';u.rate=.95;speechSynthesis.speak(u)};
 $('stopSpeak').onclick=()=>speechSynthesis.cancel();
-$('micBtn').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Voice input is not supported by this browser. Try Safari/Chrome with microphone permission.');return}const r=new SR();r.lang='en-IN';r.interimResults=false;r.onstart=()=>setStatus('Listening…');r.onerror=e=>setStatus('Voice input error: '+e.error,'err');r.onresult=e=>{$('question').value=e.results[0][0].transcript;setStatus('Voice question captured.');};r.start()};
+let activeRecognition=null;
+$('micBtn').onclick=()=>{
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){
+  setStatus('Voice input is not supported by this browser. Try Safari/Chrome with microphone permission.','err');
+  return;
+ }
+ if(activeRecognition){
+  try{activeRecognition.stop()}catch(e){}
+  activeRecognition=null;
+  setStatus('Voice input stopped.');
+  return;
+ }
+ const r=new SR();
+ activeRecognition=r;
+ r.lang='en-IN';
+ r.interimResults=false;
+ r.continuous=false;
+ r.maxAlternatives=1;
+ r.onstart=()=>{
+  $('micBtn').textContent='⏹ Stop listening';
+  setStatus('Listening… speak your question now.','ok');
+ };
+ r.onresult=e=>{
+  const text=e.results?.[0]?.[0]?.transcript?.trim()||'';
+  if(text){
+   $('question').value=text;
+   setStatus('Voice question captured.','ok');
+  }else{
+   setStatus('No speech was detected. Please tap Speak and try again.','err');
+  }
+ };
+ r.onerror=e=>{
+  const code=e?.error||'unknown';
+  if(code==='aborted'){
+   setStatus('Voice input stopped. Tap Speak again to retry.','err');
+  }else if(code==='not-allowed'||code==='service-not-allowed'){
+   setStatus('Microphone permission is blocked. Allow microphone access for this browser, then try again.','err');
+  }else if(code==='no-speech'){
+   setStatus('No speech detected. Tap Speak and speak clearly.','err');
+  }else{
+   setStatus('Voice input error: '+code+'. Tap Speak and try again.','err');
+  }
+ };
+ r.onend=()=>{
+  $('micBtn').textContent='🎙 Speak';
+  activeRecognition=null;
+ };
+ try{r.start()}catch(e){
+  activeRecognition=null;
+  $('micBtn').textContent='🎙 Speak';
+  setStatus('Could not start voice input. Tap Speak again.','err');
+ }
+};
+
 function showPage(pageId){
  const pages=document.querySelectorAll('.page');
  const tabs=document.querySelectorAll('nav button[data-page]');
