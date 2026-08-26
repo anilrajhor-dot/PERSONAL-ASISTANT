@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.14</title>
+<title>RBI Regulatory Assistant v3.15</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
@@ -101,12 +101,12 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.14</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.15</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.14 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.15 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
@@ -174,10 +174,49 @@ function removeDoc(id){state.docs=state.docs.filter(d=>d.id!==id);saveDocs();ren
 $("deleteAll").onclick=()=>{if(confirm("Delete all locally stored material?")){state.docs=[];saveDocs();renderDocs()}};
 
 function terms(q){
-  const stop=new Set(["what","which","when","where","who","why","how","many","much","please","tell","about","under","above","loan","loans","group","groups","the","for","to","of","on","is","are","can","be","this","that","and","with","from","into","their","there","does","do","a","an"]);
-  return q.toLowerCase().replace(/[₹,.;:()\/\-]/g," ").split(/\s+/).filter(x=>x.length>2&&!stop.has(x));
+  const stop=new Set(["what","which","when","where","who","why","how","many","much","please","tell","about","under","above","loan","loans","group","groups","the","for","to","of","on","is","are","can","be","this","that","and","with","from","into","their","there","does","do","a","an","what's","whats"]);
+  const aliases={srg:"shg",srgs:"shgs","self-help":"self","selfhelp":"self"};
+  return q.toLowerCase().replace(/[₹,.;:()\/\-]/g," ").split(/\s+/).map(x=>aliases[x]||x).filter(x=>x.length>2&&!stop.has(x));
 }
-function sentenceParts(text){return (text||"").replace(/\s+/g," ").split(/(?<=[.!?])\s+/).filter(s=>s.trim().length>12)}
+function sentenceParts(text){
+  const t=(text||"").replace(/\s+/g," ").trim();
+  if(!t)return [];
+  // PDF extraction often loses full stops. Split on numbered clauses and strong section markers too.
+  return t.split(/(?=\b\d+\s*\([ivx]+\)|\b\d+\s*\.\s*\([ivx]+\)|\b\d+\s+[A-Z][A-Za-z][^.!?]{0,35}:)/i)
+    .flatMap(x=>x.split(/(?<=[.!?])\s+/))
+    .map(x=>x.trim()).filter(s=>s.length>12);
+}
+function questionIntent(q){
+  const l=q.toLowerCase();
+  if(/repay|repayment|tenure|period|duration|instalment|installment/.test(l))return "repayment";
+  if(/interest|rate|mclr|benchmark/.test(l))return "interest";
+  if(/member|members/.test(l))return "members";
+  if(/first\s+(dose|loan)|first\s+time|initial\s+loan/.test(l))return "firstdose";
+  if(/margin|contribution|own\s+contribution/.test(l))return "margin";
+  if(/eligib|criteria|qualif/.test(l))return "eligibility";
+  if(/subvention|subsid/.test(l))return "subvention";
+  if(/limit|maximum|minimum|amount|sanction|credit\s+limit|drawing\s+power/.test(l))return "amount";
+  if(/kyc|know\s+your\s+customer/.test(l))return "kyc";
+  return "general";
+}
+function intentScore(s,intent){
+  const l=s.toLowerCase();let n=0;
+  const rules={
+    repayment:[/repay/,/tenure/,/period/,/duration/,/instal+ment/],
+    interest:[/interest/,/rate/,/mclr/,/benchmark/],
+    members:[/members?/],
+    firstdose:[/first\s+(dose|loan)/,/first\s+time/,/corpus/],
+    margin:[/margin/,/contribution/],
+    eligibility:[/eligib/,/criteria/,/qualif/],
+    subvention:[/subvention/,/subsid/],
+    amount:[/amount/,/sanction/,/limit/,/₹|rs\.?\s*\d|lakh|crore/],
+    kyc:[/\bkyc\b/,/know\s+your\s+customer/],
+    general:[]
+  }[intent]||[];
+  for(const r of rules)if(r.test(l))n+=6;
+  if(intent!=="general" && /\d+(?:\.\d+)?\s*(?:%|years?|months?|lakh|crore|days?)/i.test(s))n+=3;
+  return n;
+}
 function scoreSentence(s,ts,q){
   const low=s.toLowerCase();let score=0;
   for(const t of ts){
@@ -185,24 +224,25 @@ function scoreSentence(s,ts,q){
     const n=(low.match(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g"))||[]).length;
     score+=Math.min(n,3);
   }
+  score+=intentScore(s,questionIntent(q));
   if(/\b\d+(?:\.\d+)?\s*%/.test(s))score+=2;
   if(/₹|\brs\.?\s?\d|\blakh\b|\bcrore\b|\bmembers?\b|\bminimum\b|\bmaximum\b|\binterest\b|\brate\b|\bkyc\b|\beligib/i.test(s))score+=2;
   if(/\b(shg|self help group|account|savings|cash credit|term loan|cc limit|drawing power|mclr|benchmark)\b/i.test(s))score+=1;
   return score;
 }
 function retrieve(q){
-  const ts=terms(q), ql=q.toLowerCase();const hits=[];
+  const ts=terms(q), ql=q.toLowerCase(),intent=questionIntent(q);const hits=[];
   for(const d of state.docs)for(const p of d.pages){
     const text=(p.text||"").replace(/\s+/g," ");if(!text)continue;
     let score=0;
-    for(const t of ts){const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");const n=(text.match(re)||[]).length;score+=Math.min(n,8)*2}
-    if(ql.length>5 && text.toLowerCase().includes(ql))score+=30;
-    const ss=sentenceParts(text).map(s=>({s,score:scoreSentence(s,ts,q)})).sort((a,b)=>b.score-a.score);
+    for(const t of ts){const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");const n=(text.match(re)||[]).length;score+=Math.min(n,6)*2}
+    if(ql.length>5 && text.toLowerCase().includes(ql))score+=25;
+    const ss=sentenceParts(text).map(s=>({s,score:scoreSentence(s,ts,q)+intentScore(s,intent)})).sort((a,b)=>b.score-a.score);
     const best=ss[0];
-    if(best && best.score>0)score+=best.score*3;
-    if(score>0)hits.push({d,p,score,bestSentence:best?.s||""});
+    if(best && best.score>0)score+=best.score*4;
+    if(score>0)hits.push({d,p,score,bestSentence:best?.s||"",intent});
   }
-  hits.sort((a,b)=>b.score-a.score);return hits.slice(0,8);
+  hits.sort((a,b)=>b.score-a.score);return hits.slice(0,6);
 }
 function bestSentences(text,q){
   const ts=terms(q);const scored=sentenceParts(text).map((s,i)=>({s,i,score:scoreSentence(s,ts,q)})).sort((a,b)=>b.score-a.score);
@@ -211,43 +251,53 @@ function bestSentences(text,q){
   return top.map(x=>x.s).join(" ").slice(0,1200);
 }
 function snippets(hit,q){
-  const text=hit.p.text||"";const parts=sentenceParts(text);const ts=terms(q);
-  const scored=parts.map((s,i)=>({s,i,score:scoreSentence(s,ts,q)})).sort((a,b)=>b.score-a.score);
-  const top=scored.slice(0,4).filter(x=>x.score>0).sort((a,b)=>a.i-b.i);
-  return (top.length?top.map(x=>x.s).join(" "):text.slice(0,1000)).slice(0,1400);
+  const text=hit.p.text||"";const parts=sentenceParts(text);const ts=terms(q);const intent=questionIntent(q);
+  const scored=parts.map((s,i)=>({s,i,score:scoreSentence(s,ts,q)+intentScore(s,intent)})).sort((a,b)=>b.score-a.score);
+  const top=scored.slice(0,2).filter(x=>x.score>0).sort((a,b)=>a.i-b.i);
+  return (top.length?top.map(x=>x.s).join(" "):text.slice(0,900)).slice(0,1200);
+}
+function conciseAnswer(sentence,q){
+  if(!sentence)return "";
+  const intent=questionIntent(q), s=sentence.replace(/\s+/g," ").trim();
+  // Prefer the clause that contains the requested fact; this prevents whole-page OCR from appearing as the answer.
+  const clauses=s.split(/\s+(?=(?:for|in|during|where|while|and)\s)/i).map(x=>x.trim()).filter(Boolean);
+  const scored=clauses.map(c=>({c,score:intentScore(c,intent)+(terms(q).filter(t=>c.toLowerCase().includes(t)).length*2)})).sort((a,b)=>b.score-a.score);
+  let out=(scored[0]?.score>0?scored[0].c:s);
+  if(intent==="interest"){
+    const m=s.match(/[^.]*?(?:interest|rate|mclr|benchmark)[^.]*?\d+(?:\.\d+)?\s*(?:%|per\s+annum)[^.]*\.?/i); if(m)out=m[0];
+  } else if(intent==="repayment"){
+    const m=s.match(/[^.]*?(?:repay|repayment|tenure|period|duration|instal+ment)[^.]*?(?:\d+(?:\.\d+)?\s*(?:years?|months?|days?)|maximum\s+period|minimum\s+period)[^.]*\.?/i); if(m)out=m[0];
+  } else if(intent==="members"){
+    const m=s.match(/[^.]*?\b(?:\d+\s*[-–]\s*\d+|\d+)\s+members?[^.]*\.?/i); if(m)out=m[0];
+  } else if(intent==="margin"){
+    const m=s.match(/[^.]*?margin[^.]*?\d+(?:\.\d+)?\s*%[^.]*\.?/i); if(m)out=m[0];
+  } else if(intent==="firstdose"){
+    const m=s.match(/[^.]*?(?:first\s+(?:dose|loan)|first\s+time)[^.]*?(?:₹|rs\.?\s*\d|lakh|corpus|times?)[^.]*\.?/i); if(m)out=m[0];
+  }
+  return out.slice(0,650);
 }
 function localAnswer(q,hits){
   if(!hits.length)return {answer:"Not found in supplied material.",source:null,evidence:[]};
-  const evidence=hits.slice(0,5).map(h=>({name:h.d.name,page:pageNo(h.p.page)??1,text:snippets(h,q),score:h.score}));
-  const lq=q.toLowerCase();
-  // Extract the most relevant answer-bearing sentence, not the first sentence on the page.
-  let candidates=[];
-  for(const h of hits.slice(0,5)){
+  const intent=questionIntent(q),candidates=[];
+  for(const h of hits){
     for(const s of sentenceParts(h.p.text||"")){
-      candidates.push({s,score:scoreSentence(s,terms(q))+h.score/10,h});
+      const sc=scoreSentence(s,terms(q),q)+intentScore(s,intent)+(h.score/20);
+      candidates.push({s,score:sc,h});
     }
   }
   candidates.sort((a,b)=>b.score-a.score);
-  let answer=candidates[0]?.s||"";
-  if(/interest|rate/i.test(lq)){
-    const x=candidates.find(c=>/\b(?:interest|rate|mclr|benchmark)\b/i.test(c.s)&&/\d+(?:\.\d+)?\s*%/i.test(c.s));
-    if(x)answer=x.s;
-  } else if(/members?/i.test(lq)){
-    const x=candidates.find(c=>/\bmembers?\b/i.test(c.s)&&/\d/.test(c.s));
-    if(x)answer=x.s;
-  } else if(/kyc|know your customer/i.test(lq)){
-    const x=candidates.find(c=>/\bkyc\b|know your customer/i.test(c.s));
-    if(x)answer=x.s;
-  }
-  if(!answer || answer.length<8)answer=bestSentences(evidence[0]?.text||"",q);
-  const bestHit=candidates[0]?.h||hits[0];
-  const source={name:bestHit.d.name,page:pageNo(bestHit.p.page)??1,text:answer};
-  return {answer:answer||"Not found in supplied material.",source,evidence};
+  let chosen=candidates[0];
+  if(!chosen)return {answer:"Not found in supplied material.",source:null,evidence:[]};
+  const answer=conciseAnswer(chosen.s,q)||chosen.s.slice(0,650);
+  const source={name:chosen.h.d.name,page:pageNo(chosen.h.p.page)??1,text:answer};
+  // Show only the evidence passage that actually supports the answer.
+  const evidence=[{name:chosen.h.d.name,page:pageNo(chosen.h.p.page)??1,text:answer,score:chosen.score}];
+  return {answer,source,evidence};
 }
 async function gemini(q,hits){
   const key=localStorage.getItem(KEYS.key);if(!key)throw new Error("No Gemini key saved. Use Document Search or add a key in Settings.");
   const model=localStorage.getItem(KEYS.model)||"gemini-3.5-flash-lite";
-  const evidence=hits.slice(0,8).map((h,i)=>`EVIDENCE ${i+1} | ${h.d.name} | PDF page ${h.p.page}\n${snippets(h,q)}`).join("\n\n");
+  const evidence=hits.slice(0,4).map((h,i)=>`EVIDENCE ${i+1} | ${h.d.name} | PDF page ${h.p.page}\n${snippets(h,q)}`).join("\n\n");
   const prompt=`You are a document-grounded regulatory assistant.
 STRICT EVIDENCE LOCK: Use ONLY the supplied evidence below. Never use outside knowledge. If the evidence does not establish the answer, say exactly "Not found in supplied material." Do not infer missing facts.
 RELEVANCE LOCK: Answer ONLY the user's question. Ignore unrelated sentences appearing in the same PDF page. Select the sentence or clause that directly addresses the question. Do not copy the first sentence of an evidence block merely because it appears first.
@@ -260,7 +310,7 @@ ${evidence}`;
   const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
   const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:500}})});
   const data=await r.json();if(!r.ok)throw new Error(data?.error?.message||`HTTP ${r.status}`);
-  return {text:data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join("")||"No answer returned.",evidence:hits.slice(0,5)};
+  return {text:data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join("")||"No answer returned.",evidence:hits.slice(0,4)};
 }
 function renderResult(res,ai=false){
   if(res.source)res.source.page=pageNo(res.source.page)??1;
