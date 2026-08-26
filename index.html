@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v2.2</title>
+<title>RBI Regulatory Assistant v2.3</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -46,7 +46,7 @@ window.TESSERACT_READY=(async function(){
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v2.2</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v2.3</div></div></div>
  <nav>
   <button type="button" class="active" data-page="ask">Ask RBI</button>
   <button type="button" data-page="library">Knowledge Library</button>
@@ -88,17 +88,20 @@ window.TESSERACT_READY=(async function(){
   <h2>Knowledge Library</h2>
   <div class="hint">Upload material progressively. Files are kept in this browser's local storage. For v1, PDFs up to 50 MB can be sent inline to Gemini; other supported text/image files may also be used.</div>
   <div id="drop" style="margin-top:14px">
-   <strong>Tap to select documents</strong><br><span class="small">PDF, TXT, CSV, JSON, HTML, PNG, JPG, WEBP · multiple files allowed</span>
-   <input id="fileInput" type="file" multiple accept=".pdf,.txt,.csv,.json,.html,.htm,.png,.jpg,.jpeg,.webp" style="display:none">
-  </div>
-  <div class="row" style="margin-top:10px"><button class="btn danger" id="clearLibrary">Delete all local material</button></div>
+  <label for="fileInput" style="display:block;cursor:pointer">
+    <strong>Tap to select documents</strong><br>
+    <span class="small">PDF, TXT, CSV, JSON, HTML · multiple files allowed</span>
+  </label>
+  <input id="fileInput" type="file" multiple accept=".pdf,.txt,.csv,.json,.html,.htm" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+  <div id="uploadStatus" class="status" style="margin-top:10px"></div>
+</div>   <div class="row" style="margin-top:10px"><button class="btn danger" id="clearLibrary">Delete all local material</button></div>
  </div>
  <div class="card"><h2>Uploaded material</h2><div id="fileList"></div></div>
 </section>
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v2.2 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v2.3 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
@@ -109,7 +112,7 @@ window.TESSERACT_READY=(async function(){
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v2.2</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v2.3</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -121,13 +124,13 @@ window.TESSERACT_READY=(async function(){
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v2.2 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v2.3 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v2.2. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v2.3. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -181,7 +184,30 @@ async function renderList(){const docs=await allDocs();$('fileList').innerHTML=d
 async function removeDoc(id){await delDoc(id);renderList()}
 function fmt(n){return n<1024?(n+' B'):n<1048576?((n/1024).toFixed(1)+' KB'):((n/1048576).toFixed(1)+' MB')}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function uploadFiles(files){for(const f of files){if(f.size>50*1024*1024 && (f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'))){alert(f.name+' is over 50 MB and cannot be sent inline in v2.2.');continue}await addDoc(await fileToDoc(f))}await renderList()}
+async function uploadFiles(files){
+ const list=Array.from(files||[]);
+ if(!list.length)return;
+ const st=$('uploadStatus'); st.className='status'; st.textContent='Preparing '+list.length+' file(s)…';
+ let done=0;
+ for(const f of list){
+  try{
+   st.textContent='Processing '+f.name+'…';
+   if(f.size>50*1024*1024)throw new Error('File is over 50 MB.');
+   const doc=await fileToDoc(f);
+   await addDoc(doc);
+   done++;
+  }catch(e){
+   st.textContent='Could not process '+f.name+': '+e.message;
+   st.className='status err';
+  }
+ }
+ await renderList();
+ if(done){
+  st.textContent=done+' document(s) uploaded and stored locally ✓';
+  st.className='status ok';
+ }
+ $('fileInput').value='';
+}await addDoc(await fileToDoc(f))}await renderList()}
 async function getKey(){return await loadSetting('geminiApiKeyV14')}
 function setStatus(t,cls=''){ $('status').textContent=t;$('status').className='status '+cls}
 
@@ -430,7 +456,7 @@ $('testKey').onclick=async()=>{
   $('keyStatus').className='status err';
  }
 };
-openDB().then(renderList); showPage('ask'); showPage('ask');
+openDB().then(renderList).catch(e=>{const st=$('uploadStatus');if(st){st.textContent='Local storage unavailable: '+e.message;st.className='status err'}}); showPage('ask'); showPage('ask');
 </script>
 </body>
 </html>
