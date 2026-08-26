@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v3.2</title>
+<title>RBI Regulatory Assistant v3.3</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -51,7 +51,7 @@ window.TESSERACT_READY=(async function(){
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.2</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.3</div></div></div>
  <nav>
   <button type="button" class="active" data-page="ask">Ask RBI</button>
   <button type="button" data-page="library">Knowledge Library</button>
@@ -108,7 +108,7 @@ window.TESSERACT_READY=(async function(){
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.2 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.3 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. It is retained when you move between app versions on this device. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
@@ -119,7 +119,7 @@ window.TESSERACT_READY=(async function(){
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v3.2</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v3.3</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -131,13 +131,13 @@ window.TESSERACT_READY=(async function(){
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v3.2 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v3.3 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v3.2. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v3.3. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -302,25 +302,49 @@ function expandTerms(q){
  base.forEach(t=>(aliases[t]||[]).forEach(x=>out.add(x)));
  return [...out];
 }
+const SEARCH_STOPWORDS=new Set([
+ 'what','is','are','was','were','the','a','an','of','to','for','on','in','by',
+ 'this','that','these','those','it','its','from','with','and','or','do','does',
+ 'did','how','many','much','can','could','would','should','please','tell','me',
+ 'required','requirement','provision','violation','penalty','branch'
+]);
+function meaningfulQueryTerms(q){
+ return norm(q).split(' ').filter(t=>t.length>2&&!SEARCH_STOPWORDS.has(t));
+}
+function isContextOnlyQuestion(q){
+ const n=norm(q);
+ return /\b(this|that|the) (violation|provision|requirement|rule|penalty)\b/.test(n) ||
+        /\b(what|which) (is|was) (the )?(penalty|punishment)\b/.test(n) && meaningfulQueryTerms(q).length<2;
+}
 function scorePage(text,q){
- const low=norm(text), terms=expandTerms(q);
- let score=0;
+ const low=norm(text), original=meaningfulQueryTerms(q);
+ if(!original.length) return 0;
+ const terms=expandTerms(q).filter(t=>!SEARCH_STOPWORDS.has(t));
+ let score=0, exactCount=0;
  for(const t of terms){
-  if(low.includes(t)) score += (norm(q).includes(t)?2:1);
+  if(low.includes(t)){
+   if(original.includes(t)){ score+=3; exactCount++; }
+   else score+=0.5;
+  }
  }
  const phrase=norm(q);
- if(phrase && low.includes(phrase)) score+=8;
+ if(phrase && low.includes(phrase)) score+=10;
+ // A page must contain at least one substantive user-supplied term.
+ // Generic words such as "violation" must never retrieve an unrelated page.
+ if(exactCount===0) return 0;
  return score;
 }
 function localEvidence(docs,q){
+ if(isContextOnlyQuestion(q)) return [];
  const hits=[];
+ const original=meaningfulQueryTerms(q);
  for(const d of docs){
   const pages=d.pages||[];
   for(const pg of pages){
    const txt=pg.text||'';
    const score=scorePage(txt,q);
-   if(score>0){
-    const low=norm(txt), terms=expandTerms(q);
+   if(score>=3){
+    const low=norm(txt), terms=expandTerms(q).filter(t=>!SEARCH_STOPWORDS.has(t));
     const pos=terms.map(t=>low.indexOf(t)).filter(x=>x>=0);
     const start=Math.max(0,(pos.length?Math.min(...pos):0)-650);
     hits.push({score,page:pg.page,name:displayDocName(d),text:txt.slice(start,start+2200)});
@@ -460,8 +484,11 @@ async function ask(){
     $('answer').textContent='No text could be extracted from the uploaded PDF material.\n\nThis PDF appears to be scanned/image-based. The no-AI search needs OCR for this document before it can search the provisions.\n\nDocument(s):\n'+emptyPages.map(d=>'• '+displayDocName(d)).join('\n');
     setStatus('PDF appears scanned — text extraction returned no usable text.','err');return;
    }
-   $('answer').textContent='I could not find sufficient information to answer this question in the material provided.\n\nEVIDENCE USED\nNo sufficiently matching passage was found.';
-   setStatus('No supporting evidence found in the supplied material.','ok');return;
+   const contextOnly=isContextOnlyQuestion(q);
+   $('answer').textContent=contextOnly
+    ? 'Not found in the supplied material.\n\nThe question refers to “this violation/provision” without identifying the provision. Please mention the specific provision, subject or section you want checked.'
+    : 'Not found in the supplied material.\n\nNo sufficiently matching passage was found for the specific question.';
+   setStatus(contextOnly?'Please specify the provision or subject.':'No supporting evidence found in the supplied material.','ok');return;
   }
 
   const evidenceText=formatEvidence(evidence);
