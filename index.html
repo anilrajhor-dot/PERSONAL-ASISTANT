@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v2.7</title>
+<title>RBI Regulatory Assistant v2.9</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -46,7 +46,7 @@ window.TESSERACT_READY=(async function(){
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v2.7</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v2.9</div></div></div>
  <nav>
   <button type="button" class="active" data-page="ask">Ask RBI</button>
   <button type="button" data-page="library">Knowledge Library</button>
@@ -103,7 +103,7 @@ window.TESSERACT_READY=(async function(){
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v2.7 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v2.9 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. It is retained when you move between app versions on this device. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
@@ -114,7 +114,7 @@ window.TESSERACT_READY=(async function(){
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v2.7</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v2.9</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -126,13 +126,13 @@ window.TESSERACT_READY=(async function(){
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v2.7 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v2.9 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v2.7. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v2.9. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
@@ -356,6 +356,16 @@ function formatEvidence(evidence){
 
 ${e.text}`).join('\n\n────────────────────────\n\n');
 }
+async function fetchWithTimeout(url,options={},timeoutMs=25000){
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),timeoutMs);
+ try{
+  return await fetch(url,{...options,signal:controller.signal});
+ }catch(e){
+  if(e.name==='AbortError') throw new Error('Gemini request timed out after 25 seconds. Check the API key, model and internet connection.');
+  throw e;
+ }finally{clearTimeout(timer)}
+}
 async function ask(){
  const q=$('question').value.trim(),docs=await allDocs(),mode=window.answerMode||'auto';
  if(!q){setStatus('Please enter a question.','err');return}
@@ -387,14 +397,14 @@ async function ask(){
   if(!key){setStatus('No Gemini key saved. Use Document Search or add a key in Settings.','err');return}
   const system=`You are an evidence-bound RBI Regulatory Assistant. Answer ONLY from the evidence passages supplied. Do not use model memory, general RBI knowledge, internet information or assumptions. If evidence does not establish the answer, say: "I could not find sufficient information to answer this question in the material provided." Never invent citations, quotations, page numbers or regulatory requirements. If evidence conflicts, identify the conflict. Return ANSWER, EXPLANATION, EVIDENCE USED, SOURCE, PRACTICAL IMPLICATION, CONFIDENCE.`;
   const model=$('model').value;
-  const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
+  const url='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent';
   const body={systemInstruction:{parts:[{text:system}]},contents:[{role:'user',parts:[{text:`USER QUESTION:\n${q}\n\nSUPPLIED EVIDENCE ONLY:\n${evidenceText}`}]}],generationConfig:{maxOutputTokens:3000}};
   $('answer').textContent='Generating answer from retrieved evidence…';
-  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),j=await r.json();
+  const r=await fetchWithTimeout(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body)}),j=await r.json();
   if(!r.ok)throw new Error((j?.error?.message||'Gemini API error')+' [HTTP '+r.status+']');
   $('answer').textContent=j?.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'No answer returned.';
   setStatus('AI answer generated from retrieved evidence only.','ok');
- }catch(e){$('answer').textContent='';setStatus(e.message,'err')}finally{$('askBtn').disabled=false}
+ }catch(e){$('answer').textContent='AI request failed: '+e.message;setStatus(e.message,'err')}finally{$('askBtn').disabled=false}
 }
 $('askBtn').onclick=ask;
 $('clearBtn').onclick=()=>{$('question').value='';$('answerCard').style.display='none';setStatus('')};
@@ -463,8 +473,8 @@ $('testKey').onclick=async()=>{
  $('keyStatus').textContent='Testing…';
  try{
   const model=$('model').value;
-  const u='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+encodeURIComponent(key);
-  const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'Reply only with: CONNECTION OK'}]}],generationConfig:{maxOutputTokens:20}})});
+  const u='https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent';
+  const r=await fetchWithTimeout(u,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:'Reply only with: CONNECTION OK'}]}],generationConfig:{maxOutputTokens:20}})});
   const j=await r.json();
   if(!r.ok)throw new Error((j?.error?.message||'API error')+' [HTTP '+r.status+']');
   $('keyStatus').textContent='Connection successful. Gemini is responding.';
