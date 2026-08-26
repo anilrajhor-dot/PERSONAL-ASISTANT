@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b3d91">
-<title>RBI Regulatory Assistant v3.8</title>
+<title>RBI Regulatory Assistant v3.9</title>
 <style>
 :root{--blue:#0b3d91;--blue2:#1557b0;--bg:#f4f7fb;--card:#fff;--text:#18212f;--muted:#667085;--line:#dbe3ef;--danger:#b42318;--ok:#067647}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
@@ -36,6 +36,9 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 .policy-box[open] summary:after{content:'−'}
 .policy-text{padding:0 13px 12px!important;margin:0!important;line-height:1.5}
 
+
+.smart-note{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:#f5f8fd;color:#52627a;font-size:.9rem}
+
 </style>
 <script>
 window.PDFJS_READY=(async function(){
@@ -59,7 +62,7 @@ window.TESSERACT_READY=(async function(){
 </head>
 <body>
 <header>
- <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.8</div></div></div>
+ <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.9</div></div></div>
  <nav>
   <button type="button" class="active" data-page="ask">Ask RBI</button>
   <button type="button" data-page="library">Knowledge Library</button>
@@ -81,7 +84,10 @@ window.TESSERACT_READY=(async function(){
   <details class="policy-box">
    <summary>ⓘ Evidence Policy</summary>
    <div class="hint policy-text">
-    <strong>Strict Evidence Lock:</strong> the assistant uses only documents stored in this app. It does not fill gaps with outside knowledge or assumptions. If the material does not establish the answer, it says <strong>“Not found in the supplied material.”</strong>
+    <strong>
+If the question asks for a number, rate, limit, period, ratio, eligibility condition, or other rule, put the decisive value/condition first and make it visually prominent. If the supplied rule contains arithmetic (for example, a multiple of corpus plus a minimum/maximum), calculate it when the user provides the required figures. Show the calculation briefly, then the result, and cite the source. Never invent missing figures or rules.
+
+Strict Evidence Lock:</strong> the assistant uses only documents stored in this app. It does not fill gaps with outside knowledge or assumptions. If the material does not establish the answer, it says <strong>“Not found in the supplied material.”</strong>
     <br><br><strong>Answer style:</strong> direct answer first, normally in 1–3 sentences, followed by the exact source/page when established. Additional explanation is included only when necessary.
    </div>
   </details>
@@ -94,7 +100,7 @@ window.TESSERACT_READY=(async function(){
   <div id="status" class="status"></div>
  </div>
  <div class="card" id="answerCard" style="display:none">
-  <h2>Answer</h2>
+  <h2>Answer</h2><div class="smart-note">Smart answer: key figures, limits and conditions are shown first; calculations are shown when the supplied rule and figures allow them.</div>
   <div id="answer" class="answer"></div>
   <div class="row" style="margin-top:14px">
    <button class="btn secondary" id="speakAnswer">🔊 Read answer aloud</button>
@@ -123,7 +129,7 @@ window.TESSERACT_READY=(async function(){
 
 <section id="settings" class="page">
  <div class="card">
-  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.8 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
+  <h2>Gemini API Settings</h2><div class="hint" style="margin-bottom:10px"><strong>v3.9 storage:</strong> the API key is stored in this browser using IndexedDB, not inside the HTML file.</div>
   <div class="hint">Your key is stored only in this browser's local storage. It is retained when you move between app versions on this device. Do not share this HTML file with a key embedded in it. Google recommends secure environment-variable handling for production applications; this v1 uses a user-entered key for personal browser use.</div>
   <h3>Gemini API key</h3>
   <input id="apiKey" type="password" placeholder="Paste your Gemini API key">
@@ -134,7 +140,7 @@ window.TESSERACT_READY=(async function(){
  </div>
  <div class="card" id="versionCard">
   <h2>About this app</h2>
-  <div class="hint"><strong>RBI Regulatory Assistant v3.8</strong><br>
+  <div class="hint"><strong>RBI Regulatory Assistant v3.9</strong><br>
   Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</div>
  </div>
  <div class="card">
@@ -146,13 +152,13 @@ window.TESSERACT_READY=(async function(){
  </div>
 </section>
 </main>
-<footer>RBI Regulatory Assistant v3.8 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
+<footer>RBI Regulatory Assistant v3.9 · Personal browser application · Verify important regulatory conclusions against the original document.</footer>
 
 <script>
 const DB_NAME='rbiAssistantV13', STORE='docs';
 let db;
 const $=id=>document.getElementById(id);
-const SYSTEM=`You are RBI Regulatory Assistant v3.8. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
+const SYSTEM=`You are RBI Regulatory Assistant v3.9. You are a CLOSED-SOURCE regulatory assistant. Answer the user's question ONLY from the reference documents supplied in this request. Do not use internet knowledge, general RBI knowledge, model memory, assumptions, or outside sources. If the supplied material does not establish the answer, explicitly say: "I could not find sufficient information to answer this question in the material provided." Never guess.
 
 Before answering, inspect all supplied reference documents and relevant surrounding provisions. Pay attention to document dates, amendments, effective dates and conflicts. Prefer a later amendment only when the supplied documents establish that it modifies the earlier provision. If documents conflict and the supplied material does not resolve the conflict, explain the conflict.
 
