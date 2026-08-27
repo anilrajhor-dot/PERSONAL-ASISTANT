@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.20</title>
+<title>RBI Regulatory Assistant v3.21</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
@@ -22,7 +22,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.20</div></div></div>
+  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.21</div></div></div>
   <nav>
     <button class="tab active" data-page="ask">Ask RBI</button>
     <button class="tab" data-page="library">Knowledge Library</button>
@@ -101,18 +101,18 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.20</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.21</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.20 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.21 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <script>
-const VERSION="3.20";
-const KEYS={docs:"rbi_ra_docs_v319",key:"rbi_ra_gemini_key_v319",model:"rbi_ra_model_v319"};
+const VERSION="3.21";
+const KEYS={docs:"rbi_ra_docs_v321",key:"rbi_ra_gemini_key_v321",model:"rbi_ra_model_v321"};
 const DB_NAME="rbi_regulatory_assistant_library_v1",DB_VERSION=1,DB_STORE="documents";
 const state={docs:[],mode:"auto",recognition:null,db:null,storage:"IndexedDB"};
 
@@ -213,7 +213,7 @@ async function migrateLegacyDocs(){
 }
 function findLegacyKey(){
   const preferred=[
-    KEYS.key,"rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317",
+    KEYS.key,"rbi_ra_gemini_key_v320","rbi_ra_gemini_key_v319","rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317",
     "rbi_ra_gemini_key_v316","rbi_ra_gemini_key_v313","rbi_ra_gemini_key_v312",
     "rbi_ra_gemini_key_v310","rbi_ra_gemini_key_v309"
   ];
@@ -233,7 +233,7 @@ function findLegacyModel(){
   return "gemini-3.5-flash-lite";
 }
 async function migrateKnownVersionStores(){
-  const docKeys=["rbi_ra_docs_v319","rbi_ra_docs_v318","rbi_ra_docs_v317","rbi_ra_docs_v316","rbi_ra_docs_v313","rbi_ra_docs_v312","rbi_ra_docs_v311","rbi_ra_docs_v310"];
+  const docKeys=["rbi_ra_docs_v321","rbi_ra_docs_v320","rbi_ra_docs_v319","rbi_ra_docs_v318","rbi_ra_docs_v317","rbi_ra_docs_v316","rbi_ra_docs_v313","rbi_ra_docs_v312","rbi_ra_docs_v311","rbi_ra_docs_v310"];
   const merged=[];
   for(const k of docKeys){try{const a=JSON.parse(localStorage.getItem(k)||"[]");if(Array.isArray(a))merged.push(...a)}catch{}}
   if(!merged.length)return;
@@ -243,10 +243,10 @@ async function migrateKnownVersionStores(){
   normaliseDocs(); await saveDocs();
 }
 function recoverGeminiSettings(){
-  const keys=[KEYS.key,"rbi_ra_gemini_key_v319","rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317","rbi_ra_gemini_key_v316","rbi_ra_gemini_key_v313","rbi_ra_gemini_key_v312","rbi_ra_gemini_key_v311","rbi_ra_gemini_key_v310"];
+  const keys=[KEYS.key,"rbi_ra_gemini_key_v321","rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317","rbi_ra_gemini_key_v316","rbi_ra_gemini_key_v313","rbi_ra_gemini_key_v312","rbi_ra_gemini_key_v311","rbi_ra_gemini_key_v310"];
   let key=""; for(const k of keys){const v=localStorage.getItem(k);if(v){key=v;break}}
   if(!key){for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||"";const v=localStorage.getItem(k)||"";if(/gemini|google.*ai/i.test(k)&&/key|api/i.test(k)&&v.length>=20){key=v;break}}}
-  const models=[KEYS.model,"rbi_ra_model_v319","rbi_ra_model_v318","rbi_ra_model_v317","rbi_ra_model_v316","rbi_ra_model_v313","rbi_ra_model_v312"];
+  const models=[KEYS.model,"rbi_ra_model_v321","rbi_ra_model_v318","rbi_ra_model_v317","rbi_ra_model_v316","rbi_ra_model_v313","rbi_ra_model_v312"];
   let model="";for(const k of models){const v=localStorage.getItem(k);if(v){model=v;break}}
   model=model||"gemini-3.5-flash-lite";
   if(key)localStorage.setItem(KEYS.key,key); localStorage.setItem(KEYS.model,model);
@@ -341,7 +341,7 @@ $("deleteAll").onclick=async()=>{if(confirm("Delete all locally stored material?
 
 $("exportLibrary").onclick=()=>{
   const payload={app:"RBI Regulatory Assistant",format:1,exportedAt:new Date().toISOString(),documents:state.docs};
-  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.20_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.21_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 $("importLibrary").onclick=()=>$("libraryBackupInput").click();
 $("libraryBackupInput").onchange=async e=>{
@@ -357,10 +357,11 @@ $("libraryBackupInput").onchange=async e=>{
 };
 
 function terms(q){
-  const stop=new Set(["what","which","when","where","who","why","how","many","much","please","tell","about","under","above","loan","loans","group","groups","the","for","to","of","on","is","are","can","be","this","that","and","with","from","into","their","there","does","do","a","an","what's","whats"]);
-  const aliases={srg:"shg",srgs:"shgs","self-help":"self","selfhelp":"self"};
+  const stop=new Set(["what","which","when","where","who","why","how","many","much","please","tell","about","under","above","the","for","to","of","on","is","are","can","be","this","that","and","with","from","into","their","there","does","do","a","an","means","mean","defined","definition","explain"]);
+  const aliases={srg:"shg",srgs:"shgs","self-help":"self","selfhelp":"self","term-loan":"term loan","termloan":"term loan"};
   return q.toLowerCase().replace(/[₹,.;:()\/\-]/g," ").split(/\s+/).map(x=>aliases[x]||x).filter(x=>x.length>2&&!stop.has(x));
 }
+
 function sentenceParts(text){
   const t=(text||"").replace(/\s+/g," ").trim();
   if(!t)return [];
@@ -371,6 +372,7 @@ function sentenceParts(text){
 }
 function questionIntent(q){
   const l=q.toLowerCase();
+  if(/\bwhat\s+(?:is|are|does)\b|\bdefine\b|\bdefinition\b|\bmeans\b/.test(l))return "definition";
   if(/repay|repayment|tenure|period|duration|instalment|installment/.test(l))return "repayment";
   if(/interest|rate|mclr|benchmark/.test(l))return "interest";
   if(/member|members/.test(l))return "members";
@@ -382,9 +384,11 @@ function questionIntent(q){
   if(/kyc|know\s+your\s+customer/.test(l))return "kyc";
   return "general";
 }
+
 function intentScore(s,intent){
   const l=s.toLowerCase();let n=0;
   const rules={
+    definition:[/\bmeans\b/,/\bdefined\b/,/\bdefinition\b/],
     repayment:[/repay/,/tenure/,/period/,/duration/,/instal+ment/],
     interest:[/interest/,/rate/,/mclr/,/benchmark/],
     members:[/members?/],
@@ -418,6 +422,14 @@ function retrieve(q){
   for(const d of state.docs) for(const p of d.pages){
     const text=(p.text||"").replace(/\s+/g," "); if(!text)continue;
     let score=0;
+    const normalizedQ=ql.replace(/[^a-z0-9\s-]/g," ").replace(/\s+/g," ").trim();
+    const phraseCandidates=[];
+    if(normalizedQ)phraseCandidates.push(normalizedQ);
+    const defMatch=normalizedQ.match(/^what\s+(?:is|are)\s+(.+?)(?:\s+means)?$/i);
+    if(defMatch)phraseCandidates.push(defMatch[1].trim());
+    const meansMatch=normalizedQ.match(/^(.+?)\s+means$/i); if(meansMatch)phraseCandidates.push(meansMatch[1].trim());
+    for(const ph of phraseCandidates){if(ph.length>4 && text.toLowerCase().includes(ph))score+=45;}
+    if(intent==="definition" && /\bmeans\b|\bdefined\s+as\b|\bdefinition\b/i.test(text))score+=8;
     for(const t of ts){
       const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");
       score+=Math.min((text.match(re)||[]).length,8)*2;
@@ -439,12 +451,12 @@ function retrieve(q){
     byDoc.get(key).push(h);
   }
   const covered=[];
-  for(const arr of byDoc.values()) covered.push(...arr.slice(0,3));
+  for(const arr of byDoc.values()) covered.push(...arr.slice(0,4));
   covered.sort((a,b)=>b.score-a.score);
-  const globalTop=hits.slice(0,18);
+  const globalTop=hits.slice(0,24);
   const out=[]; const seen=new Set();
   for(const h of [...covered,...globalTop]){const k=`${h.d.id||h.d.name}|${pageNo(h.p.page)??1}`;if(!seen.has(k)){seen.add(k);out.push(h)}}
-  return out.slice(0,30);
+  return out.slice(0,40);
 }
 function bestSentences(text,q){
   const ts=terms(q);const scored=sentenceParts(text).map((s,i)=>({s,i,score:scoreSentence(s,ts,q)})).sort((a,b)=>b.score-a.score);
@@ -473,6 +485,11 @@ function conciseAnswer(sentence,q){
     const m=s.match(/[^.]*?\b(?:\d+\s*[-–]\s*\d+|\d+)\s+members?[^.]*\.?/i); if(m)out=m[0];
   } else if(intent==="margin"){
     const m=s.match(/[^.]*?margin[^.]*?\d+(?:\.\d+)?\s*%[^.]*\.?/i); if(m)out=m[0];
+  } else if(intent==="definition"){
+    const ql=q.toLowerCase().replace(/[^a-z0-9\s-]/g," ").replace(/\s+/g," ").trim();
+    const subj=ql.replace(/^what\s+(?:is|are)\s+/i,"").replace(/\s+means$/i,"").trim();
+    if(subj){const escRe=subj.split(/\s+/).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("\\s+"); const m=s.match(new RegExp("[^.]*\\b"+escRe+"\\b[^.]*\\bmeans\\b[^.]*\\.?","i")); if(m)out=m[0];}
+    if(!out || out===s){const dm=s.match(/[^.]*\b(?:means|defined as|definition of)\b[^.]*\.?/i);if(dm)out=dm[0];}
   } else if(intent==="firstdose"){
     const m=s.match(/[^.]*?(?:first\s+(?:dose|loan)|first\s+time)[^.]*?(?:₹|rs\.?\s*\d|lakh|corpus|times?)[^.]*\.?/i); if(m)out=m[0];
   }
@@ -510,7 +527,7 @@ async function gemini(q,hits){
   }
   const blocks=[];
   let totalChars=0;
-  const MAX_CHARS=50000;
+  const MAX_CHARS=90000;
   for(const [id,arr] of grouped){
     const best=arr.sort((a,b)=>b.score-a.score).slice(0,3);
     for(const h of best){
@@ -528,7 +545,7 @@ async function gemini(q,hits){
 STRICT SOURCE LOCK:
 - Use ONLY the evidence supplied below.
 - The evidence comes from documents uploaded and stored in this app.
-- Search across ALL supplied evidence blocks before answering. The blocks were retrieved from the complete indexed Knowledge Library, across every stored document.
+- Search across ALL supplied evidence blocks before answering. Evidence is drawn from the complete indexed Knowledge Library across every stored document. Do not assume the first or highest-scoring block is correct.
 - If multiple documents address the question, reconcile them only when the documents themselves support doing so.
 - Never use outside knowledge, memory, web knowledge, or assumptions.
 - If the supplied evidence does not establish the answer, say exactly: "Not found in supplied material."
@@ -538,6 +555,7 @@ QUESTION LOCK:
 - Ignore unrelated text from the same PDF page.
 - Do not select a sentence merely because it appears first.
 - Prefer the most direct clause answering the question.
+- For definition questions, the evidence must define the exact requested term. Do not substitute a related term (for example, do not answer a question about "crop loan" with a definition of "crop season").
 
 PRECISION:
 - Give the direct answer first, in 1–3 sentences.
@@ -635,8 +653,8 @@ $("askBtn").onclick=async()=>{
     else {
       const simple=/\b(what is|what are|how many|how much|what rate|rate of interest|maximum|minimum|limit|period|tenure|eligib(?:le|ility)|required|members?)\b/i.test(q);
       const needsAI=/\b(why|explain|compare|difference|whether|can|calculate|work out|how does|interpret|implication|applicable|conditions?)\b/i.test(q);
-      if(hits.length && localStorage.getItem(KEYS.key) && (!simple || needsAI)){
-        const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="Auto: AI used for interpretation/synthesis from retrieved evidence only.";
+      if(hits.length && localStorage.getItem(KEYS.key)){
+        const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="Auto: AI reviewed relevant evidence across the stored Knowledge Library.";
       }else if(hits.length){
         const r=localAnswer(q,hits);renderResult(r);$("askStatus").textContent="Auto: direct document answer used — no Gemini needed.";
       }else{
