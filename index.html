@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.18</title>
+<title>RBI Regulatory Assistant v3.19</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
@@ -22,7 +22,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.18</div></div></div>
+  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.19</div></div></div>
   <nav>
     <button class="tab active" data-page="ask">Ask RBI</button>
     <button class="tab" data-page="library">Knowledge Library</button>
@@ -63,7 +63,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
 <section id="page-library" class="hidden">
   <div class="card">
     <h1 class="section-title">Knowledge Library</h1>
-    <p class="muted">Upload material progressively. Extracted text is kept in this browser. PDF, TXT, CSV and HTML are supported.</p>
+    <p class="muted">Upload material progressively. Documents are stored in IndexedDB and recovered across app revisions where the browser origin is the same. AI searches <b>every stored document</b> and uses the most relevant evidence from each matching document.</p>
     <div class="drop" id="drop">
       <strong>Tap here to select documents</strong>
       PDF, TXT, CSV or HTML · multiple files allowed
@@ -101,18 +101,18 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.18</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.19</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.18 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.19 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <script>
-const VERSION="3.18";
-const KEYS={docs:"rbi_ra_docs_v318",key:"rbi_ra_gemini_key_v318",model:"rbi_ra_model_v318"};
+const VERSION="3.19";
+const KEYS={docs:"rbi_ra_docs_v319",key:"rbi_ra_gemini_key_v319",model:"rbi_ra_model_v319"};
 const DB_NAME="rbi_regulatory_assistant_library_v1",DB_VERSION=1,DB_STORE="documents";
 const state={docs:[],mode:"auto",recognition:null,db:null,storage:"IndexedDB"};
 
@@ -139,37 +139,131 @@ function idbGetAll(){return new Promise((resolve,reject)=>{const tx=state.db.tra
 function idbPut(doc){return new Promise((resolve,reject)=>{const tx=state.db.transaction(DB_STORE,"readwrite");tx.objectStore(DB_STORE).put(doc);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
 function idbDelete(id){return new Promise((resolve,reject)=>{const tx=state.db.transaction(DB_STORE,"readwrite");tx.objectStore(DB_STORE).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
 function idbClear(){return new Promise((resolve,reject)=>{const tx=state.db.transaction(DB_STORE,"readwrite");tx.objectStore(DB_STORE).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+async function readLegacyLocalStorageDocs(){
+  const found=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i)||"";
+    if(!/rbi.*(?:doc|library)|(?:doc|library).*rbi/i.test(k)) continue;
+    try{
+      const raw=localStorage.getItem(k), data=JSON.parse(raw);
+      const docs=Array.isArray(data)?data:(Array.isArray(data?.documents)?data.documents:null);
+      if(!docs?.length) continue;
+      const valid=docs.filter(d=>d && Array.isArray(d.pages));
+      if(valid.length) found.push(...valid);
+    }catch{}
+  }
+  return found;
+}
+async function readLegacyIndexedDBDocs(){
+  const found=[];
+  if(!indexedDB.databases)return found;
+  try{
+    const dbs=await indexedDB.databases();
+    for(const info of dbs){
+      const name=info?.name||"";
+      if(!/rbi|regulatory|assistant|library/i.test(name) || name===DB_NAME) continue;
+      try{
+        const db=await new Promise((resolve,reject)=>{
+          const req=indexedDB.open(name);
+          req.onsuccess=()=>resolve(req.result);
+          req.onerror=()=>reject(req.error);
+        });
+        const stores=[...db.objectStoreNames].filter(x=>/doc|library/i.test(x));
+        for(const storeName of stores){
+          const docs=await new Promise((resolve,reject)=>{
+            const tx=db.transaction(storeName,"readonly"), req=tx.objectStore(storeName).getAll();
+            req.onsuccess=()=>resolve(req.result||[]); req.onerror=()=>reject(req.error);
+          });
+          found.push(...docs.filter(d=>d && Array.isArray(d.pages)));
+        }
+        db.close();
+      }catch(e){console.warn("Legacy DB migration skipped",name,e)}
+    }
+  }catch(e){console.warn("IndexedDB database enumeration unavailable",e)}
+  return found;
+}
 async function migrateLegacyDocs(){
-  let legacy=[]; try{legacy=JSON.parse(localStorage.getItem(KEYS.docs)||"[]")}catch{}
-  if(!Array.isArray(legacy)||!legacy.length)return false;
-  normaliseDocs();
-  const existingIds=new Set(state.docs.map(d=>d.id));
-  for(const d of legacy){if(!existingIds.has(d.id)){d.migratedFrom="localStorage";await idbPut(d)}}
-  try{localStorage.removeItem(KEYS.docs)}catch{}
-  return true;
+  const candidates=[];
+  try{
+    const legacy=JSON.parse(localStorage.getItem("rbi_ra_docs_v318")||"[]");
+    if(Array.isArray(legacy)) candidates.push(...legacy);
+  }catch{}
+  candidates.push(...await readLegacyLocalStorageDocs());
+  candidates.push(...await readLegacyIndexedDBDocs());
+
+  const byFingerprint=new Map();
+  const fingerprint=d=>{
+    const first=(d?.pages||[]).map(p=>String(p?.text||"")).join(" ").slice(0,1000);
+    return `${String(d?.name||"").toLowerCase()}|${(d?.pages||[]).length}|${first}`;
+  };
+  for(const d of [...state.docs,...candidates]){
+    if(!d?.pages?.length) continue;
+    const id=d.id||crypto.randomUUID();
+    const copy={...d,id,pages:d.pages.map(p=>({...p,page:pageNo(p.page)??1}))};
+    byFingerprint.set(fingerprint(copy),copy);
+  }
+  const merged=[...byFingerprint.values()];
+  let changed=false;
+  for(const d of merged){
+    if(!state.docs.some(x=>fingerprint(x)===fingerprint(d))){
+      await idbPut(d); changed=true;
+    }
+  }
+  return changed;
+}
+function findLegacyKey(){
+  const preferred=[
+    KEYS.key,"rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317",
+    "rbi_ra_gemini_key_v316","rbi_ra_gemini_key_v313","rbi_ra_gemini_key_v312",
+    "rbi_ra_gemini_key_v310","rbi_ra_gemini_key_v309"
+  ];
+  for(const k of preferred){const v=localStorage.getItem(k);if(v)return v}
+  // Recover keys saved by an earlier build even if its versioned key name changed.
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i)||"";
+    if(!/gemini|google.*ai/i.test(k) || !/key|api/i.test(k))continue;
+    const v=localStorage.getItem(k)||"";
+    if(v.length>=20 && v.length<=300)return v;
+  }
+  return "";
+}
+function findLegacyModel(){
+  const preferred=[KEYS.model,"rbi_ra_model_v318","rbi_ra_model_v317","rbi_ra_model_v316","rbi_ra_model_v313","rbi_ra_model_v312","rbi_ra_model_v310","rbi_ra_model_v309"];
+  for(const k of preferred){const v=localStorage.getItem(k);if(v)return v}
+  return "gemini-3.5-flash-lite";
 }
 async function load(){
   try{
     state.db=await openDB();
     state.docs=await idbGetAll();
-    if(!state.docs.length) await migrateLegacyDocs();
+    await migrateLegacyDocs();
     state.docs=await idbGetAll(); normaliseDocs(); state.storage="IndexedDB";
   }catch(e){
     state.storage="Browser fallback";
     try{state.docs=JSON.parse(localStorage.getItem(KEYS.docs)||"[]")}catch{state.docs=[]}
+    if(!state.docs.length){
+      try{state.docs=await readLegacyLocalStorageDocs()}catch{}
+    }
     normaliseDocs();
   }
-  const keyKeys=[KEYS.key,"rbi_ra_gemini_key_v310","rbi_ra_gemini_key_v309","rbi_ra_gemini_key_v318"];
-  const modelKeys=[KEYS.model,"rbi_ra_model_v310","rbi_ra_model_v309","rbi_ra_model_v318"];
-  const key=keyKeys.map(k=>localStorage.getItem(k)).find(Boolean)||"";
-  const model=modelKeys.map(k=>localStorage.getItem(k)).find(Boolean)||"gemini-3.5-flash-lite";
+  const key=findLegacyKey(), model=findLegacyModel();
+  if(key) localStorage.setItem(KEYS.key,key);
+  if(model) localStorage.setItem(KEYS.model,model);
   $("apiKey").value=key; $("model").value=model; renderDocs(); updateStorageStatus();
 }
 async function saveDocs(){
   normaliseDocs();
-  if(state.db){try{const tx=state.db.transaction(DB_STORE,"readwrite");const store=tx.objectStore(DB_STORE);for(const d of state.docs)store.put(d);await new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});return}catch(e){console.warn(e)}}
+  if(state.db){
+    try{
+      const tx=state.db.transaction(DB_STORE,"readwrite"), store=tx.objectStore(DB_STORE);
+      for(const d of state.docs)store.put(d);
+      await new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
+      return;
+    }catch(e){console.warn("IndexedDB save failed; using local fallback",e)}
+  }
   try{localStorage.setItem(KEYS.docs,JSON.stringify(state.docs))}catch(e){console.error(e)}
 }
+
 function updateStorageStatus(){const el=$("libraryStorageStatus");if(el)el.textContent=`Library storage: ${state.storage} · ${state.docs.length} document${state.docs.length===1?"":"s"} stored`}
 function setPage(page){document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));["ask","library","settings"].forEach(p=>$("page-"+p).classList.toggle("hidden",p!==page)); if(page==="library")renderDocs()}
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
@@ -217,7 +311,7 @@ $("deleteAll").onclick=async()=>{if(confirm("Delete all locally stored material?
 
 $("exportLibrary").onclick=()=>{
   const payload={app:"RBI Regulatory Assistant",format:1,exportedAt:new Date().toISOString(),documents:state.docs};
-  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.18_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.19_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 $("importLibrary").onclick=()=>$("libraryBackupInput").click();
 $("libraryBackupInput").onchange=async e=>{
@@ -290,18 +384,34 @@ function scoreSentence(s,ts,q){
   return score;
 }
 function retrieve(q){
-  const ts=terms(q), ql=q.toLowerCase(),intent=questionIntent(q);const hits=[];
-  for(const d of state.docs)for(const p of d.pages){
-    const text=(p.text||"").replace(/\s+/g," ");if(!text)continue;
+  const ts=terms(q), ql=q.toLowerCase(), intent=questionIntent(q), hits=[];
+  for(const d of state.docs) for(const p of d.pages){
+    const text=(p.text||"").replace(/\s+/g," "); if(!text)continue;
     let score=0;
-    for(const t of ts){const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");const n=(text.match(re)||[]).length;score+=Math.min(n,6)*2}
-    if(ql.length>5 && text.toLowerCase().includes(ql))score+=25;
-    const ss=sentenceParts(text).map(s=>({s,score:scoreSentence(s,ts,q)+intentScore(s,intent)})).sort((a,b)=>b.score-a.score);
+    for(const t of ts){
+      const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");
+      score+=Math.min((text.match(re)||[]).length,8)*2;
+    }
+    if(ql.length>5 && text.toLowerCase().includes(ql))score+=30;
+    const ss=sentenceParts(text).map(x=>({s:x,score:scoreSentence(x,ts,q)+intentScore(x,intent)})).sort((a,b)=>b.score-a.score);
     const best=ss[0];
-    if(best && best.score>0)score+=best.score*4;
+    if(best && best.score>0)score+=best.score*5;
     if(score>0)hits.push({d,p,score,bestSentence:best?.s||"",intent});
   }
-  hits.sort((a,b)=>b.score-a.score);return hits.slice(0,6);
+  hits.sort((a,b)=>b.score-a.score);
+
+  // Ensure every relevant document can contribute evidence, rather than only the
+  // top pages globally. This prevents one long PDF from crowding out other uploads.
+  const byDoc=new Map();
+  for(const h of hits){
+    const key=h.d.id||h.d.name;
+    if(!byDoc.has(key))byDoc.set(key,[]);
+    byDoc.get(key).push(h);
+  }
+  const covered=[];
+  for(const arr of byDoc.values()) covered.push(...arr.slice(0,3));
+  covered.sort((a,b)=>b.score-a.score);
+  return covered.slice(0,24);
 }
 function bestSentences(text,q){
   const ts=terms(q);const scored=sentenceParts(text).map((s,i)=>({s,i,score:scoreSentence(s,ts,q)})).sort((a,b)=>b.score-a.score);
@@ -354,38 +464,91 @@ function localAnswer(q,hits){
   return {answer,source,evidence};
 }
 async function gemini(q,hits){
-  const key=localStorage.getItem(KEYS.key);if(!key)throw new Error("No Gemini key saved. Use Document Search or add a key in Settings.");
-  const model=localStorage.getItem(KEYS.model)||"gemini-3.5-flash-lite";
-  const evidencePrompt=hits.slice(0,4).map((h,i)=>`EVIDENCE ${i+1} | ${h.d.name} | PDF page ${h.p.page}\n${snippets(h,q)}`).join("\n\n");
-  const prompt=`You are a document-grounded regulatory assistant.
-STRICT EVIDENCE LOCK: Use ONLY the supplied evidence below. Never use outside knowledge. If the evidence does not establish the answer, say exactly "Not found in supplied material." Do not infer missing facts.
-RELEVANCE LOCK: Answer ONLY the user's question. Ignore unrelated sentences appearing in the same PDF page. Select the sentence or clause that directly addresses the question. Do not copy the first sentence of an evidence block merely because it appears first.
-PRECISION FORMAT: First line = direct answer. Keep it to 1-3 sentences. Then, only if necessary, one short condition/clarification. Then SOURCE with document name and page. Do not add general background.
-TERMINOLOGY LOCK: Never confuse loan amount, sanction amount, CCL, drawing power, outstanding balance, limit or corpus. If the question uses one term, answer for that term only.
-If the evidence contains a direct statement answering the question, use that statement rather than saying "Not found".
-Question: ${q}
+  const key=localStorage.getItem(KEYS.key)||findLegacyKey();
+  if(!key)throw new Error("No Gemini key saved. Use Document Search or add a key in Settings.");
+  const model=localStorage.getItem(KEYS.model)||findLegacyModel();
 
-${evidencePrompt}`;
+  // Build evidence by document, so AI receives evidence from all relevant uploads.
+  const grouped=new Map();
+  for(const h of hits){
+    const id=h.d.id||h.d.name;
+    if(!grouped.has(id))grouped.set(id,[]);
+    grouped.get(id).push(h);
+  }
+  const blocks=[];
+  let totalChars=0;
+  const MAX_CHARS=50000;
+  for(const [id,arr] of grouped){
+    const best=arr.sort((a,b)=>b.score-a.score).slice(0,3);
+    for(const h of best){
+      const snippet=snippets(h,q);
+      const block=`DOCUMENT: ${h.d.name}\nPAGE: ${pageNo(h.p.page)??1}\nEVIDENCE:\n${snippet}`;
+      if(totalChars+block.length>MAX_CHARS)continue;
+      blocks.push(block); totalChars+=block.length;
+    }
+  }
+  if(!blocks.length)throw new Error("No usable evidence was retrieved from the stored documents.");
+
+  const evidencePrompt=blocks.map((b,i)=>`EVIDENCE ${i+1}\n${b}`).join("\n\n");
+  const prompt=`You are a document-grounded RBI regulatory assistant.
+
+STRICT SOURCE LOCK:
+- Use ONLY the evidence supplied below.
+- The evidence comes from documents uploaded and stored in this app.
+- Search across ALL supplied evidence blocks before answering.
+- If multiple documents address the question, reconcile them only when the documents themselves support doing so.
+- Never use outside knowledge, memory, web knowledge, or assumptions.
+- If the supplied evidence does not establish the answer, say exactly: "Not found in supplied material."
+
+QUESTION LOCK:
+- Answer only the user's question.
+- Ignore unrelated text from the same PDF page.
+- Do not select a sentence merely because it appears first.
+- Prefer the most direct clause answering the question.
+
+PRECISION:
+- Give the direct answer first, in 1–3 sentences.
+- Add only essential conditions/qualifications.
+- Do not invent calculations.
+- Preserve exact regulatory terminology.
+
+TERMINOLOGY LOCK:
+Do not confuse loan amount, sanction amount, CCL, drawing power, outstanding balance, limit, corpus, first dose, repeat loan, interest rate, margin or repayment period.
+
+SOURCE:
+After the answer, provide a single SOURCE line in exactly this form:
+SOURCE: <document name>, Page <number>
+Choose the document/page that most directly supports the answer.
+
+EVIDENCE:
+${evidencePrompt}
+
+USER QUESTION:
+${q}`;
+
   const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
-  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:500}})});
-  const data=await r.json();if(!r.ok)throw new Error(data?.error?.message||`HTTP ${r.status}`);
+  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+    contents:[{parts:[{text:prompt}]}],
+    generationConfig:{temperature:0.1,maxOutputTokens:600}
+  })});
+  const data=await r.json();
+  if(!r.ok)throw new Error(data?.error?.message||`HTTP ${r.status}`);
   const text=data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join("")||"No answer returned.";
-  // Preserve document metadata all the way to the renderer. Never pass raw retrieval hits
-  // as evidence because hits store metadata under d.name / p.page.
-  const evidence=hits.slice(0,4).map(h=>({
+
+  const evidence=hits.map(h=>({
     name:h?.d?.name||"Unknown document",
     page:pageNo(h?.p?.page)??1,
     text:snippets(h,q),
     score:h?.score||0
   }));
-  // If Gemini supplied an explicit SOURCE line, use it for the source card.
   const m=text.match(/(?:^|\n)\s*SOURCE\s*:\s*(.+?)(?:\s*,\s*|\s+[-—]\s+|\s+)(?:PDF\s+)?page\s+(\d+)/i);
   let source=null;
   if(m){
     const raw=m[1].trim().replace(/[.,;:]\s*$/,'');
-    const match=evidence.find(e=>e.name.toLowerCase()===raw.toLowerCase())||evidence.find(e=>raw.toLowerCase().includes(e.name.toLowerCase())||e.name.toLowerCase().includes(raw.toLowerCase()));
+    const match=evidence.find(e=>e.name.toLowerCase()===raw.toLowerCase())
+      ||evidence.find(e=>raw.toLowerCase().includes(e.name.toLowerCase())||e.name.toLowerCase().includes(raw.toLowerCase()));
     source={name:match?.name||raw,page:Number(m[2])||match?.page||1,text:match?.text||""};
-  } else if(evidence.length){
+  }else if(evidence.length){
     source={name:evidence[0].name,page:evidence[0].page,text:evidence[0].text};
   }
   return {text,source,evidence};
