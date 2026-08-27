@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.19</title>
+<title>RBI Regulatory Assistant v3.20</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
@@ -22,7 +22,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.19</div></div></div>
+  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.20</div></div></div>
   <nav>
     <button class="tab active" data-page="ask">Ask RBI</button>
     <button class="tab" data-page="library">Knowledge Library</button>
@@ -70,7 +70,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
       <input id="fileInput" type="file" accept=".pdf,.txt,.csv,.html,.htm,text/plain,text/csv,text/html,application/pdf" multiple style="display:none">
     </div>
     <div id="uploadStatus" class="status"></div>
-    <div class="actions"><button id="deleteAll" class="danger">Delete all local material</button><button id="exportLibrary" class="soft">Export library backup</button><button id="importLibrary" class="soft">Import library backup</button><input id="libraryBackupInput" type="file" accept="application/json,.json" hidden></div><div id="libraryStorageStatus" class="status muted"></div>
+    <div class="actions"><button id="deleteAll" class="danger">Delete all local material</button><button id="exportLibrary" class="soft">Export library backup</button><button id="importLibrary" class="soft">Import library backup</button><input id="libraryBackupInput" type="file" accept="application/json,.json" hidden></div><div id="libraryStorageStatus" class="status muted"></div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" onclick="exportLibraryBackup()">Export Library Backup</button><label class="btn">Import Library Backup<input type="file" accept="application/json" hidden onchange="importLibraryBackup(this.files[0])"></label></div>
   </div>
   <div class="card"><h2 class="section-title">Uploaded material</h2><div id="fileList" class="file-list"></div></div>
 </section>
@@ -101,17 +101,17 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.19</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.20</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.19 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.20 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <script>
-const VERSION="3.19";
+const VERSION="3.20";
 const KEYS={docs:"rbi_ra_docs_v319",key:"rbi_ra_gemini_key_v319",model:"rbi_ra_model_v319"};
 const DB_NAME="rbi_regulatory_assistant_library_v1",DB_VERSION=1,DB_STORE="documents";
 const state={docs:[],mode:"auto",recognition:null,db:null,storage:"IndexedDB"};
@@ -232,12 +232,32 @@ function findLegacyModel(){
   for(const k of preferred){const v=localStorage.getItem(k);if(v)return v}
   return "gemini-3.5-flash-lite";
 }
+async function migrateKnownVersionStores(){
+  const docKeys=["rbi_ra_docs_v319","rbi_ra_docs_v318","rbi_ra_docs_v317","rbi_ra_docs_v316","rbi_ra_docs_v313","rbi_ra_docs_v312","rbi_ra_docs_v311","rbi_ra_docs_v310"];
+  const merged=[];
+  for(const k of docKeys){try{const a=JSON.parse(localStorage.getItem(k)||"[]");if(Array.isArray(a))merged.push(...a)}catch{}}
+  if(!merged.length)return;
+  const sig=d=>`${String(d?.name||"").toLowerCase()}|${(d?.pages||[]).length}|${String(d?.pages?.[0]?.text||"").slice(0,200)}`;
+  const have=new Set(state.docs.map(sig));
+  for(const d of merged){if(d?.pages?.length&&!have.has(sig(d))){state.docs.push({...d,id:d.id||crypto.randomUUID()});have.add(sig(d))}}
+  normaliseDocs(); await saveDocs();
+}
+function recoverGeminiSettings(){
+  const keys=[KEYS.key,"rbi_ra_gemini_key_v319","rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317","rbi_ra_gemini_key_v316","rbi_ra_gemini_key_v313","rbi_ra_gemini_key_v312","rbi_ra_gemini_key_v311","rbi_ra_gemini_key_v310"];
+  let key=""; for(const k of keys){const v=localStorage.getItem(k);if(v){key=v;break}}
+  if(!key){for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||"";const v=localStorage.getItem(k)||"";if(/gemini|google.*ai/i.test(k)&&/key|api/i.test(k)&&v.length>=20){key=v;break}}}
+  const models=[KEYS.model,"rbi_ra_model_v319","rbi_ra_model_v318","rbi_ra_model_v317","rbi_ra_model_v316","rbi_ra_model_v313","rbi_ra_model_v312"];
+  let model="";for(const k of models){const v=localStorage.getItem(k);if(v){model=v;break}}
+  model=model||"gemini-3.5-flash-lite";
+  if(key)localStorage.setItem(KEYS.key,key); localStorage.setItem(KEYS.model,model);
+  return {key,model};
+}
 async function load(){
   try{
     state.db=await openDB();
     state.docs=await idbGetAll();
     await migrateLegacyDocs();
-    state.docs=await idbGetAll(); normaliseDocs(); state.storage="IndexedDB";
+    state.docs=await idbGetAll(); await migrateKnownVersionStores(); await migrateLegacyDocs(); state.docs=await idbGetAll(); normaliseDocs(); state.storage="IndexedDB";
   }catch(e){
     state.storage="Browser fallback";
     try{state.docs=JSON.parse(localStorage.getItem(KEYS.docs)||"[]")}catch{state.docs=[]}
@@ -246,7 +266,7 @@ async function load(){
     }
     normaliseDocs();
   }
-  const key=findLegacyKey(), model=findLegacyModel();
+  const recovered=recoverGeminiSettings(); const key=recovered.key||findLegacyKey(), model=recovered.model||findLegacyModel();
   if(key) localStorage.setItem(KEYS.key,key);
   if(model) localStorage.setItem(KEYS.model,model);
   $("apiKey").value=key; $("model").value=model; renderDocs(); updateStorageStatus();
@@ -264,6 +284,16 @@ async function saveDocs(){
   try{localStorage.setItem(KEYS.docs,JSON.stringify(state.docs))}catch(e){console.error(e)}
 }
 
+function exportLibraryBackup(){
+  const payload={version:VERSION,exportedAt:new Date().toISOString(),documents:state.docs.map(d=>({...d})),model:localStorage.getItem(KEYS.model)||findLegacyModel()};
+  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}), a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`RBI_Regulatory_Assistant_Library_v${VERSION}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+async function importLibraryBackup(file){
+  const payload=JSON.parse(await file.text()), docs=Array.isArray(payload)?payload:(payload.documents||[]); if(!docs.length)throw new Error("No documents found in backup.");
+  const sig=d=>`${String(d?.name||"").toLowerCase()}|${(d?.pages||[]).length}|${String(d?.pages?.[0]?.text||"").slice(0,200)}`; const have=new Set(state.docs.map(sig));
+  for(const d of docs){if(d?.pages?.length&&!have.has(sig(d))){state.docs.push({...d,id:d.id||crypto.randomUUID()});have.add(sig(d))}}
+  normaliseDocs();await saveDocs();renderDocs();updateStorageStatus();alert(`${docs.length} document(s) found in backup. Library restored/merged.`);
+}
 function updateStorageStatus(){const el=$("libraryStorageStatus");if(el)el.textContent=`Library storage: ${state.storage} · ${state.docs.length} document${state.docs.length===1?"":"s"} stored`}
 function setPage(page){document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));["ask","library","settings"].forEach(p=>$("page-"+p).classList.toggle("hidden",p!==page)); if(page==="library")renderDocs()}
 document.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
@@ -311,7 +341,7 @@ $("deleteAll").onclick=async()=>{if(confirm("Delete all locally stored material?
 
 $("exportLibrary").onclick=()=>{
   const payload={app:"RBI Regulatory Assistant",format:1,exportedAt:new Date().toISOString(),documents:state.docs};
-  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.19_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.20_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 $("importLibrary").onclick=()=>$("libraryBackupInput").click();
 $("libraryBackupInput").onchange=async e=>{
@@ -411,7 +441,10 @@ function retrieve(q){
   const covered=[];
   for(const arr of byDoc.values()) covered.push(...arr.slice(0,3));
   covered.sort((a,b)=>b.score-a.score);
-  return covered.slice(0,24);
+  const globalTop=hits.slice(0,18);
+  const out=[]; const seen=new Set();
+  for(const h of [...covered,...globalTop]){const k=`${h.d.id||h.d.name}|${pageNo(h.p.page)??1}`;if(!seen.has(k)){seen.add(k);out.push(h)}}
+  return out.slice(0,30);
 }
 function bestSentences(text,q){
   const ts=terms(q);const scored=sentenceParts(text).map((s,i)=>({s,i,score:scoreSentence(s,ts,q)})).sort((a,b)=>b.score-a.score);
@@ -495,7 +528,7 @@ async function gemini(q,hits){
 STRICT SOURCE LOCK:
 - Use ONLY the evidence supplied below.
 - The evidence comes from documents uploaded and stored in this app.
-- Search across ALL supplied evidence blocks before answering.
+- Search across ALL supplied evidence blocks before answering. The blocks were retrieved from the complete indexed Knowledge Library, across every stored document.
 - If multiple documents address the question, reconcile them only when the documents themselves support doing so.
 - Never use outside knowledge, memory, web knowledge, or assumptions.
 - If the supplied evidence does not establish the answer, say exactly: "Not found in supplied material."
