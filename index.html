@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.17</title>
+<title>RBI Regulatory Assistant v3.18</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
@@ -17,12 +17,12 @@ textarea,input,select{width:100%;border:2px solid var(--line);border-radius:18px
 .answer-head{font-size:28px;font-weight:850;margin-bottom:16px}.answer-box,.source-box,.evidence-box{border:2px solid #d9e4f3;border-radius:20px;padding:22px;margin-top:14px;background:#fbfdff}.answer-box h3,.source-box h3,.evidence-box h3{color:#1c559f;font-size:20px;letter-spacing:.5px;margin:0 0 12px}.answer-text{font-size:21px;line-height:1.6;font-weight:600}.source-text{font-size:17px;line-height:1.5;font-weight:650}.hint{background:#f1f5fb;border-radius:18px;padding:17px;color:#53627a;font-weight:650;line-height:1.5}.drop{border:3px dashed #b8cae4;border-radius:22px;padding:30px;text-align:center;background:#f9fbfe}.drop strong{display:block;font-size:21px;margin-bottom:7px}.file-list{display:grid;gap:10px;margin-top:15px}.file-row{border:1px solid var(--line);border-radius:15px;padding:14px;display:flex;justify-content:space-between;gap:12px;align-items:center}.file-name{font-weight:750;overflow-wrap:anywhere}.badge{font-size:13px;background:#edf4ff;color:var(--blue);border-radius:999px;padding:6px 9px;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.small{font-size:14px}.footer{text-align:center;color:#6c7890;font-weight:650;line-height:1.45;padding:20px}
 .hidden{display:none!important}.check{font-size:17px;margin:12px 0}.check::before{content:"✓";display:inline-grid;place-items:center;background:#72b9fa;color:#fff;width:32px;height:32px;border-radius:10px;margin-right:12px;font-weight:900}
 table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid var(--line);padding:10px;text-align:left}th{background:#eef4fc}
-@media(max-width:650px){main{padding:16px 14px 50px}.card{padding:18px;border-radius:20px}.title{font-size:24px}.logo{width:56px;height:56px}.grid{grid-template-columns:1fr}.answer-text{font-size:18px}button,.tab{padding:12px 8px;font-size:15px}.section-title{font-size:25px}nav{gap:7px}nav .tab{min-width:0}}
+@media(max-width:650px){main{padding:16px 14px 50px}.card{padding:18px;border-radius:20px}.title{font-size:23px}.subtitle{font-size:15px}.logo{width:56px;height:56px}.grid{grid-template-columns:1fr}.answer-text{font-size:18px}.source-text{font-size:16px}button,.tab{padding:12px 7px;font-size:15px}.section-title{font-size:25px}nav{gap:7px;grid-template-columns:1fr 1.55fr 1fr}nav .tab{min-width:0;padding-left:5px;padding-right:5px}.brand{gap:12px}}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.17</div></div></div>
+  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.18</div></div></div>
   <nav>
     <button class="tab active" data-page="ask">Ask RBI</button>
     <button class="tab" data-page="library">Knowledge Library</button>
@@ -101,18 +101,18 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.17</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.18</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.17 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.18 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <script>
-const VERSION="3.14";
-const KEYS={docs:"rbi_ra_docs_v311",key:"rbi_ra_gemini_key_v311",model:"rbi_ra_model_v311"};
+const VERSION="3.18";
+const KEYS={docs:"rbi_ra_docs_v318",key:"rbi_ra_gemini_key_v318",model:"rbi_ra_model_v318"};
 const DB_NAME="rbi_regulatory_assistant_library_v1",DB_VERSION=1,DB_STORE="documents";
 const state={docs:[],mode:"auto",recognition:null,db:null,storage:"IndexedDB"};
 
@@ -159,8 +159,8 @@ async function load(){
     try{state.docs=JSON.parse(localStorage.getItem(KEYS.docs)||"[]")}catch{state.docs=[]}
     normaliseDocs();
   }
-  const keyKeys=[KEYS.key,"rbi_ra_gemini_key_v310","rbi_ra_gemini_key_v309","rbi_ra_gemini_key_v311"];
-  const modelKeys=[KEYS.model,"rbi_ra_model_v310","rbi_ra_model_v309","rbi_ra_model_v311"];
+  const keyKeys=[KEYS.key,"rbi_ra_gemini_key_v310","rbi_ra_gemini_key_v309","rbi_ra_gemini_key_v318"];
+  const modelKeys=[KEYS.model,"rbi_ra_model_v310","rbi_ra_model_v309","rbi_ra_model_v318"];
   const key=keyKeys.map(k=>localStorage.getItem(k)).find(Boolean)||"";
   const model=modelKeys.map(k=>localStorage.getItem(k)).find(Boolean)||"gemini-3.5-flash-lite";
   $("apiKey").value=key; $("model").value=model; renderDocs(); updateStorageStatus();
@@ -217,7 +217,7 @@ $("deleteAll").onclick=async()=>{if(confirm("Delete all locally stored material?
 
 $("exportLibrary").onclick=()=>{
   const payload={app:"RBI Regulatory Assistant",format:1,exportedAt:new Date().toISOString(),documents:state.docs};
-  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.18_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 $("importLibrary").onclick=()=>$("libraryBackupInput").click();
 $("libraryBackupInput").onchange=async e=>{
@@ -390,13 +390,43 @@ ${evidencePrompt}`;
   }
   return {text,source,evidence};
 }
+function displayDocName(name){
+  const n=String(name||"").trim();
+  if(!n)return "Supplied document";
+  // Retrieval systems can occasionally expose an internal document/hash ID instead of the filename.
+  if(/^[A-F0-9]{20,}$/i.test(n)||/^file[_-]?[A-F0-9]{16,}$/i.test(n)||/^\d{8,}$/.test(n))return "Supplied document";
+  return n;
+}
+function cleanAIText(text){
+  let t=String(text||"").trim();
+  // Gemini sometimes repeats the source in the answer body; keep the dedicated SOURCE card instead.
+  t=t.replace(/\s*\n?\s*SOURCE\s*:\s*[^\n]+/ig,"").trim();
+  t=t.replace(/^\s*ANSWER\s*:\s*/i,"").trim();
+  return t;
+}
+function normaliseResultSource(res){
+  const ev=(res.evidence||[]).map(e=>({...e,name:displayDocName(e?.name),page:pageNo(e?.page)??1}));
+  res.evidence=ev;
+  let src=res.source;
+  if(!src || displayDocName(src.name)==="Supplied document"){
+    const useful=ev.find(e=>e.name!=="Supplied document")||ev[0];
+    if(useful)src={name:useful.name,page:useful.page,text:useful.text};
+  }
+  if(src)src={...src,name:displayDocName(src.name),page:pageNo(src.page)??1};
+  res.source=src||null;
+  return res;
+}
 function renderResult(res,ai=false){
-  if(res.source)res.source.page=pageNo(res.source.page)??1;
-  if(res.evidence)res.evidence=res.evidence.map(e=>({...e,name:e?.name||"Unknown document",page:pageNo(e?.page)??1}));
-  const src=res.source||(res.evidence&&res.evidence[0]);
-  let html=`<div class="answer-box"><h3>ANSWER</h3><div class="answer-text">${esc(ai?res.text:res.answer).replace(/\n/g,"<br>")}</div></div>`;
-  if(src && src.name && src.name!=="Unknown document")html+=`<div class="source-box"><h3>SOURCE</h3><div class="source-text">${esc(src.name)}, Page ${esc(pageNo(src.page)??1)}</div></div>`;
-  if(res.evidence?.length){html+=`<div class="evidence-box"><h3>EVIDENCE USED</h3>${res.evidence.slice(0,3).map((e,i)=>`<p><b>${i+1}. ${esc(e.name)} — Page ${esc(pageNo(e.page)??1)}</b><br>${esc(e.text||"")}</p>`).join("")}</div>`}
+  normaliseResultSource(res);
+  const src=res.source;
+  const answer=ai?cleanAIText(res.text):res.answer;
+  let html=`<div class="answer-box"><h3>ANSWER</h3><div class="answer-text">${esc(answer).replace(/\n/g,"<br>")}</div></div>`;
+  if(src && src.name)html+=`<div class="source-box"><h3>SOURCE</h3><div class="source-text">${esc(src.name)}, Page ${esc(src.page)}</div></div>`;
+  if(res.evidence?.length){
+    const seen=new Set();
+    const rows=res.evidence.filter(e=>{const k=`${e.name}|${e.page}|${e.text}`;if(seen.has(k))return false;seen.add(k);return true}).slice(0,3);
+    html+=`<div class="evidence-box"><h3>EVIDENCE USED</h3>${rows.map((e,i)=>`<p><b>${i+1}. ${esc(e.name)} — Page ${esc(e.page)}</b><br>${esc(e.text||"")}</p>`).join("")}</div>`;
+  }
   $("answerArea").innerHTML=html;
 }
 $("askBtn").onclick=async()=>{
