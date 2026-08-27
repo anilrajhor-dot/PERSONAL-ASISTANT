@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.16.1</title>
+<title>RBI Regulatory Assistant v3.17</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
@@ -22,7 +22,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.16.1</div></div></div>
+  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.17</div></div></div>
   <nav>
     <button class="tab active" data-page="ask">Ask RBI</button>
     <button class="tab" data-page="library">Knowledge Library</button>
@@ -101,12 +101,12 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.16.1</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.17</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.16.1 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.17 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
@@ -356,7 +356,7 @@ function localAnswer(q,hits){
 async function gemini(q,hits){
   const key=localStorage.getItem(KEYS.key);if(!key)throw new Error("No Gemini key saved. Use Document Search or add a key in Settings.");
   const model=localStorage.getItem(KEYS.model)||"gemini-3.5-flash-lite";
-  const evidence=hits.slice(0,4).map((h,i)=>`EVIDENCE ${i+1} | ${h.d.name} | PDF page ${h.p.page}\n${snippets(h,q)}`).join("\n\n");
+  const evidencePrompt=hits.slice(0,4).map((h,i)=>`EVIDENCE ${i+1} | ${h.d.name} | PDF page ${h.p.page}\n${snippets(h,q)}`).join("\n\n");
   const prompt=`You are a document-grounded regulatory assistant.
 STRICT EVIDENCE LOCK: Use ONLY the supplied evidence below. Never use outside knowledge. If the evidence does not establish the answer, say exactly "Not found in supplied material." Do not infer missing facts.
 RELEVANCE LOCK: Answer ONLY the user's question. Ignore unrelated sentences appearing in the same PDF page. Select the sentence or clause that directly addresses the question. Do not copy the first sentence of an evidence block merely because it appears first.
@@ -365,18 +365,38 @@ TERMINOLOGY LOCK: Never confuse loan amount, sanction amount, CCL, drawing power
 If the evidence contains a direct statement answering the question, use that statement rather than saying "Not found".
 Question: ${q}
 
-${evidence}`;
+${evidencePrompt}`;
   const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
   const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:500}})});
   const data=await r.json();if(!r.ok)throw new Error(data?.error?.message||`HTTP ${r.status}`);
-  return {text:data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join("")||"No answer returned.",evidence:hits.slice(0,4)};
+  const text=data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join("")||"No answer returned.";
+  // Preserve document metadata all the way to the renderer. Never pass raw retrieval hits
+  // as evidence because hits store metadata under d.name / p.page.
+  const evidence=hits.slice(0,4).map(h=>({
+    name:h?.d?.name||"Unknown document",
+    page:pageNo(h?.p?.page)??1,
+    text:snippets(h,q),
+    score:h?.score||0
+  }));
+  // If Gemini supplied an explicit SOURCE line, use it for the source card.
+  const m=text.match(/(?:^|\n)\s*SOURCE\s*:\s*(.+?)(?:\s*,\s*|\s+[-—]\s+|\s+)(?:PDF\s+)?page\s+(\d+)/i);
+  let source=null;
+  if(m){
+    const raw=m[1].trim().replace(/[.,;:]\s*$/,'');
+    const match=evidence.find(e=>e.name.toLowerCase()===raw.toLowerCase())||evidence.find(e=>raw.toLowerCase().includes(e.name.toLowerCase())||e.name.toLowerCase().includes(raw.toLowerCase()));
+    source={name:match?.name||raw,page:Number(m[2])||match?.page||1,text:match?.text||""};
+  } else if(evidence.length){
+    source={name:evidence[0].name,page:evidence[0].page,text:evidence[0].text};
+  }
+  return {text,source,evidence};
 }
 function renderResult(res,ai=false){
   if(res.source)res.source.page=pageNo(res.source.page)??1;
-  if(res.evidence)res.evidence.forEach(e=>e.page=pageNo(e.page)??1);
-  const src=res.source||(res.evidence&&res.evidence[0]); let html=`<div class="answer-box"><h3>ANSWER</h3><div class="answer-text">${esc(ai?res.text:res.answer).replace(/\n/g,"<br>")}</div></div>`;
-  if(src)html+=`<div class="source-box"><h3>SOURCE</h3><div class="source-text">${esc(src.name)}, Page ${esc(pageNo(src.page)??1)}</div></div>`;
-  if(res.evidence?.length){html+=`<div class="evidence-box"><h3>EVIDENCE USED</h3>${res.evidence.slice(0,3).map((e,i)=>`<p><b>${i+1}. ${esc(e.name)} — Page ${esc(pageNo(e.page)??1)}</b><br>${esc(e.text)}</p>`).join("")}</div>`}
+  if(res.evidence)res.evidence=res.evidence.map(e=>({...e,name:e?.name||"Unknown document",page:pageNo(e?.page)??1}));
+  const src=res.source||(res.evidence&&res.evidence[0]);
+  let html=`<div class="answer-box"><h3>ANSWER</h3><div class="answer-text">${esc(ai?res.text:res.answer).replace(/\n/g,"<br>")}</div></div>`;
+  if(src && src.name && src.name!=="Unknown document")html+=`<div class="source-box"><h3>SOURCE</h3><div class="source-text">${esc(src.name)}, Page ${esc(pageNo(src.page)??1)}</div></div>`;
+  if(res.evidence?.length){html+=`<div class="evidence-box"><h3>EVIDENCE USED</h3>${res.evidence.slice(0,3).map((e,i)=>`<p><b>${i+1}. ${esc(e.name)} — Page ${esc(pageNo(e.page)??1)}</b><br>${esc(e.text||"")}</p>`).join("")}</div>`}
   $("answerArea").innerHTML=html;
 }
 $("askBtn").onclick=async()=>{
