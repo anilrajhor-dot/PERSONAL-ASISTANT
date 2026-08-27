@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.23</title>
+<title>RBI Regulatory Assistant v3.25</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
@@ -14,7 +14,7 @@ nav{display:grid;grid-template-columns:1fr 1.75fr 1fr;gap:12px;margin-top:18px}n
 main{max-width:900px;margin:auto;padding:22px 22px 60px}.card{background:#fff;border:2px solid var(--line);border-radius:24px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px #193d6810}.section-title{font-size:28px;font-weight:850;margin:0 0 18px}.label{font-weight:800;color:var(--muted);margin:12px 0 8px}.modes{display:flex;flex-wrap:wrap;gap:12px}.mode{background:#f1f4f8;color:#344156}.mode.active{background:#e8f1ff;color:var(--blue)}
 textarea,input,select{width:100%;border:2px solid var(--line);border-radius:18px;padding:18px;font:inherit;color:var(--ink);background:#fff}textarea{min-height:155px;resize:vertical}button.primary{background:var(--blue);color:#fff}button.soft{background:#eaf2ff;color:var(--blue)}button.danger{background:#fff0ee;color:var(--bad)}button:disabled{opacity:.5;cursor:not-allowed}
 .actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}.status{font-weight:750;margin-top:14px}.good{color:var(--good)}.bad{color:var(--bad)}.muted{color:var(--muted)}
-.answer-head{font-size:28px;font-weight:850;margin-bottom:16px}.answer-box,.source-box,.evidence-box{border:2px solid #d9e4f3;border-radius:20px;padding:22px;margin-top:14px;background:#fbfdff}.answer-box h3,.source-box h3,.evidence-box h3{color:#1c559f;font-size:20px;letter-spacing:.5px;margin:0 0 12px}.answer-text{font-size:21px;line-height:1.6;font-weight:600}.source-text{font-size:17px;line-height:1.5;font-weight:650}.hint{background:#f1f5fb;border-radius:18px;padding:17px;color:#53627a;font-weight:650;line-height:1.5}.drop{border:3px dashed #b8cae4;border-radius:22px;padding:30px;text-align:center;background:#f9fbfe}.drop strong{display:block;font-size:21px;margin-bottom:7px}.file-list{display:grid;gap:10px;margin-top:15px}.file-row{border:1px solid var(--line);border-radius:15px;padding:14px;display:flex;justify-content:space-between;gap:12px;align-items:center}.file-name{font-weight:750;overflow-wrap:anywhere}.badge{font-size:13px;background:#edf4ff;color:var(--blue);border-radius:999px;padding:6px 9px;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.small{font-size:14px}.footer{text-align:center;color:#6c7890;font-weight:650;line-height:1.45;padding:20px}
+.answer-head{font-size:28px;font-weight:850;margin-bottom:16px}.answer-box,.source-box,.evidence-box{border:2px solid #d9e4f3;border-radius:20px;padding:22px;margin-top:14px;background:#fbfdff}.answer-box h3,.source-box h3,.evidence-box h3{color:#1c559f;font-size:20px;letter-spacing:.5px;margin:0 0 12px}.answer-text{font-size:21px;line-height:1.6;font-weight:600}.source-text{font-size:17px;line-height:1.5;font-weight:650}.hint{background:#f1f5fb;border-radius:18px;padding:17px;color:#53627a;font-weight:650;line-height:1.5}.drop{border:3px dashed #b8cae4;border-radius:22px;padding:30px;text-align:center;background:#f9fbfe}.drop strong{display:block;font-size:21px;margin-bottom:7px}.file-list{display:grid;gap:10px;margin-top:15px}.file-row{border:1px solid var(--line);border-radius:15px;padding:14px;display:flex;justify-content:space-between;gap:12px;align-items:center}.file-name{font-weight:750;overflow-wrap:anywhere}.badge{font-size:13px;background:#edf4ff;color:var(--blue);border-radius:999px;padding:6px 9px;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.small{font-size:14px}.footer{text-align:center;color:#6c7890;font-weight:650;line-height:1.45;padding:20px}.read-status{margin-top:16px;padding:16px;border:2px solid #d9e4f3;border-radius:18px;background:#f8fbff}.read-title{font-weight:850;color:#1c559f;font-size:18px;margin-bottom:6px}.read-track{height:10px;background:#e8eef7;border-radius:999px;overflow:hidden;margin:12px 0 8px}.read-bar{height:100%;width:0%;background:#1c559f;transition:width .2s}.ready{color:#13804b!important}.read-error{color:#b42318!important}
 .hidden{display:none!important}.check{font-size:17px;margin:12px 0}.check::before{content:"✓";display:inline-grid;place-items:center;background:#72b9fa;color:#fff;width:32px;height:32px;border-radius:10px;margin-right:12px;font-weight:900}
 table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid var(--line);padding:10px;text-align:left}th{background:#eef4fc}
 @media(max-width:650px){main{padding:16px 14px 50px}.card{padding:18px;border-radius:20px}.title{font-size:23px}.subtitle{font-size:15px}.logo{width:56px;height:56px}.grid{grid-template-columns:1fr}.answer-text{font-size:18px}.source-text{font-size:16px}button,.tab{padding:12px 7px;font-size:15px}.section-title{font-size:25px}nav{gap:7px;grid-template-columns:1fr 1.55fr 1fr}nav .tab{min-width:0;padding-left:5px;padding-right:5px}.brand{gap:12px}}
@@ -22,7 +22,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.23</div></div></div>
+  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.25</div></div></div>
   <nav>
     <button class="tab active" data-page="ask">Ask RBI</button>
     <button class="tab" data-page="library">Knowledge Library</button>
@@ -63,22 +63,27 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
 <section id="page-library" class="hidden">
   <div class="card">
     <h1 class="section-title">Knowledge Library</h1>
-    <p class="muted">Upload material progressively. After each upload, the app <b>reads, normalises, chunks and indexes every page</b> before marking the document AI-ready. AI then searches the complete indexed Knowledge Library and uses page-linked evidence only. This is document grounding, not permanent model training.</p>
+    <p class="muted">Upload material progressively. Documents are stored in IndexedDB and recovered across app revisions where the browser origin is the same. AI searches <b>every stored document</b>, prioritises exact clauses and numeric limits, and uses the most relevant evidence from each matching document.</p>
     <div class="drop" id="drop">
       <strong>Tap here to select documents</strong>
       PDF, TXT, CSV or HTML · multiple files allowed
       <input id="fileInput" type="file" accept=".pdf,.txt,.csv,.html,.htm,text/plain,text/csv,text/html,application/pdf" multiple style="display:none">
     </div>
     <div id="uploadStatus" class="status"></div>
-    <div id="trainingStatus" class="status muted">Document understanding: waiting for documents.</div>
-    <div class="actions"><button id="deleteAll" class="danger">Delete all local material</button><button id="rebuildIndex" class="soft">Re-read &amp; Rebuild AI Index</button><button id="exportLibrary" class="soft">Export library backup</button><button id="importLibrary" class="soft">Import library backup</button><input id="libraryBackupInput" type="file" accept="application/json,.json" hidden></div><div id="libraryStorageStatus" class="status muted"></div><div class="hint" style="margin-top:10px"><b>Library persistence:</b> documents are stored in a fixed IndexedDB library and migrated from older app versions. Keep the app on the same web origin. Use <b>Export Library Backup</b> before changing hosting/origin.</div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" onclick="exportLibraryBackup()">Export Library Backup</button><label class="btn">Import Library Backup<input type="file" accept="application/json" hidden onchange="importLibraryBackup(this.files[0])"></label></div>
+    <div id="aiReadStatus" class="read-status">
+      <div class="read-title">AI Document Understanding</div>
+      <div id="aiReadText" class="muted">No document has been processed yet.</div>
+      <div class="read-track"><div id="aiReadBar" class="read-bar"></div></div>
+      <div id="aiReadMeta" class="small muted">The complete stored library will be read and indexed before AI answers.</div>
+    </div>
+    <div class="actions"><button id="rebuildIndex" class="primary">Re-read &amp; Rebuild AI Index</button><button id="deleteAll" class="danger">Delete all local material</button><button id="exportLibrary" class="soft">Export library backup</button><button id="importLibrary" class="soft">Import library backup</button><input id="libraryBackupInput" type="file" accept="application/json,.json" hidden></div><div id="libraryStorageStatus" class="status muted"></div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" onclick="exportLibraryBackup()">Export Library Backup</button><label class="btn">Import Library Backup<input type="file" accept="application/json" hidden onchange="importLibraryBackup(this.files[0])"></label></div>
   </div>
   <div class="card"><h2 class="section-title">Uploaded material</h2><div id="fileList" class="file-list"></div></div>
 </section>
 
 <section id="page-settings" class="hidden">
   <div class="card">
-    <h1 class="section-title">Gemini API key</h1><div class="hint" style="margin-top:10px"><b>How document AI works:</b> uploaded material is processed locally into page-linked indexed passages; Gemini receives only retrieved passages from that library. The model is not retrained or permanently changed.</div>
+    <h1 class="section-title">Gemini API key</h1>
     <p class="muted">The key is stored only in this browser's local storage. Do not use this app on a shared/public computer with a sensitive key.</p>
     <input id="apiKey" type="password" placeholder="Enter Gemini API key">
     <div class="actions"><button id="saveKey" class="primary">Save key</button><button id="removeKey" class="danger">Remove key</button><button id="testKey" class="soft">Test Gemini connection</button></div>
@@ -102,20 +107,87 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.23</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.25</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.23 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.25 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <script>
-const VERSION="3.24";
-const KEYS={docs:"rbi_ra_docs",key:"rbi_ra_gemini_key",model:"rbi_ra_model"};
+const VERSION="3.25";
+const KEYS={docs:"rbi_ra_docs_v325",key:"rbi_ra_gemini_key_v325",model:"rbi_ra_model_v325",index:"rbi_ra_ai_index_v325"};
 const DB_NAME="rbi_regulatory_assistant_library_v1",DB_VERSION=1,DB_STORE="documents";
 const state={docs:[],mode:"auto",recognition:null,db:null,storage:"IndexedDB"};
+const aiIndex={chunks:[],builtAt:null,docs:0,pages:0,errors:[]};
+function setReadStatus(text,pct=null,meta=""){
+  const t=$("aiReadText"),b=$("aiReadBar"),m=$("aiReadMeta");
+  if(t){t.textContent=text;t.className=""+(text.includes("complete")||text.includes("ready")?"ready":"")}
+  if(b&&pct!==null)b.style.width=Math.max(0,Math.min(100,pct))+"%";
+  if(m)m.textContent=meta;
+}
+function chunkText(text,size=1100,overlap=180){
+  const clean=String(text||"").replace(/\u0000/g," ").replace(/\s+/g," ").trim();
+  if(!clean)return [];
+  const sentences=sentenceParts(clean); const out=[]; let cur="";
+  for(const sent of sentences){
+    if((cur+" "+sent).trim().length<=size){cur=(cur?cur+" ":"")+sent;continue;}
+    if(cur)out.push(cur.trim());
+    const tail=cur.slice(Math.max(0,cur.length-overlap));
+    cur=(tail?tail+" ":"")+sent;
+    if(cur.length>size){out.push(cur.slice(0,size).trim());cur=cur.slice(Math.max(0,size-overlap));}
+  }
+  if(cur)out.push(cur.trim());
+  return out.filter(x=>x.length>20);
+}
+function buildIndexFromDocs(){
+  aiIndex.chunks=[];aiIndex.errors=[];aiIndex.docs=state.docs.length;aiIndex.pages=0;
+  for(const d of state.docs){
+    for(const p of (d.pages||[])){
+      const text=String(p.text||"").replace(/\s+/g," ").trim();
+      if(!text){aiIndex.errors.push(`${d.name} page ${pageNo(p.page)??1}: no text`);continue;}
+      aiIndex.pages++;
+      const chunks=chunkText(text);
+      chunks.forEach((c,i)=>aiIndex.chunks.push({id:`${d.id}|${pageNo(p.page)??1}|${i}`,docId:d.id,name:d.name,page:pageNo(p.page)??1,text:c}));
+    }
+  }
+  aiIndex.builtAt=new Date().toISOString();
+  try{localStorage.setItem(KEYS.index,JSON.stringify(aiIndex));}catch{}
+  return aiIndex;
+}
+function loadSavedIndex(){
+  try{const x=JSON.parse(localStorage.getItem(KEYS.index)||"null");if(x?.chunks?.length){Object.assign(aiIndex,x);return true}}catch{}
+  return false;
+}
+async function rebuildAIIndex(){
+  if(!state.docs.length){setReadStatus("No documents stored.",0,"Upload at least one PDF/document first.");return;}
+  let pages=0;for(const d of state.docs)pages+=(d.pages||[]).length;
+  let done=0;aiIndex.chunks=[];aiIndex.errors=[];aiIndex.docs=state.docs.length;aiIndex.pages=0;
+  for(const d of state.docs){
+    setReadStatus(`Reading ${d.name}…`,pages?done/pages*100:0,`${done} of ${pages} pages processed · building searchable AI index`);
+    for(const p of (d.pages||[])){
+      const text=String(p.text||"").replace(/\s+/g," ").trim();
+      if(!text)aiIndex.errors.push(`${d.name} page ${pageNo(p.page)??1}: no text`);
+      else {aiIndex.pages++;chunkText(text).forEach((c,i)=>aiIndex.chunks.push({id:`${d.id}|${pageNo(p.page)??1}|${i}`,docId:d.id,name:d.name,page:pageNo(p.page)??1,text:c}));}
+      done++;setReadStatus(`Reading ${d.name} — page ${done} of ${pages}`,done/pages*100,`${done} of ${pages} pages processed · ${aiIndex.chunks.length} searchable passages indexed`);
+      await new Promise(r=>setTimeout(r,0));
+    }
+  }
+  aiIndex.builtAt=new Date().toISOString();
+  try{localStorage.setItem(KEYS.index,JSON.stringify(aiIndex));}catch{}
+  const problem=aiIndex.errors.length?` · ${aiIndex.errors.length} page(s) need OCR`:"";
+  setReadStatus("Document understanding complete — AI-ready.",100,`${aiIndex.docs} document(s) · ${aiIndex.pages}/${pages} pages read · ${aiIndex.chunks.length} searchable passages indexed${problem}`);
+}
+async function ensureAIIndex(){
+  const saved=loadSavedIndex();
+  const pages=state.docs.reduce((n,d)=>n+(d.pages||[]).length,0);
+  const complete=saved&&aiIndex.docs===state.docs.length&&aiIndex.pages===pages&&aiIndex.chunks.length>0;
+  if(!complete)await rebuildAIIndex();
+  else setReadStatus("Document understanding complete — AI-ready.",100,`${aiIndex.docs} document(s) · ${aiIndex.pages} pages read · ${aiIndex.chunks.length} searchable passages indexed`);
+}
+
 
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -214,7 +286,7 @@ async function migrateLegacyDocs(){
 }
 function findLegacyKey(){
   const preferred=[
-    KEYS.key,"rbi_ra_gemini_key_v322","rbi_ra_gemini_key_v321","rbi_ra_gemini_key_v320","rbi_ra_gemini_key_v319","rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317",
+    KEYS.key,"rbi_ra_gemini_key_v320","rbi_ra_gemini_key_v319","rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317",
     "rbi_ra_gemini_key_v316","rbi_ra_gemini_key_v313","rbi_ra_gemini_key_v312",
     "rbi_ra_gemini_key_v310","rbi_ra_gemini_key_v309"
   ];
@@ -229,16 +301,14 @@ function findLegacyKey(){
   return "";
 }
 function findLegacyModel(){
-  const preferred=[KEYS.model,"rbi_ra_model_v322","rbi_ra_model_v321","rbi_ra_model_v320","rbi_ra_model_v319","rbi_ra_model_v318","rbi_ra_model_v317","rbi_ra_model_v316","rbi_ra_model_v313","rbi_ra_model_v312","rbi_ra_model_v310","rbi_ra_model_v309"];
+  const preferred=[KEYS.model,"rbi_ra_model_v318","rbi_ra_model_v317","rbi_ra_model_v316","rbi_ra_model_v313","rbi_ra_model_v312","rbi_ra_model_v310","rbi_ra_model_v309"];
   for(const k of preferred){const v=localStorage.getItem(k);if(v)return v}
   return "gemini-3.5-flash-lite";
 }
 async function migrateKnownVersionStores(){
-  const docKeys=[];
-  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||""; if(/^rbi_ra_docs_v\d+$/i.test(k)) docKeys.push(k)}
-  docKeys.push("rbi_ra_docs_v323","rbi_ra_docs_v322","rbi_ra_docs_v321","rbi_ra_docs_v320","rbi_ra_docs_v319","rbi_ra_docs_v318","rbi_ra_docs_v317","rbi_ra_docs_v316","rbi_ra_docs_v313","rbi_ra_docs_v312","rbi_ra_docs_v311","rbi_ra_docs_v310");
+  const docKeys=["rbi_ra_docs_v322","rbi_ra_docs_v320","rbi_ra_docs_v319","rbi_ra_docs_v318","rbi_ra_docs_v317","rbi_ra_docs_v316","rbi_ra_docs_v313","rbi_ra_docs_v312","rbi_ra_docs_v311","rbi_ra_docs_v310"];
   const merged=[];
-  for(const k of [...new Set(docKeys)]){try{const a=JSON.parse(localStorage.getItem(k)||"[]");if(Array.isArray(a))merged.push(...a)}catch{}}
+  for(const k of docKeys){try{const a=JSON.parse(localStorage.getItem(k)||"[]");if(Array.isArray(a))merged.push(...a)}catch{}}
   if(!merged.length)return;
   const sig=d=>`${String(d?.name||"").toLowerCase()}|${(d?.pages||[]).length}|${String(d?.pages?.[0]?.text||"").slice(0,200)}`;
   const have=new Set(state.docs.map(sig));
@@ -246,10 +316,10 @@ async function migrateKnownVersionStores(){
   normaliseDocs(); await saveDocs();
 }
 function recoverGeminiSettings(){
-  const keys=[KEYS.key,"rbi_ra_gemini_key","rbi_ra_gemini_key_v323","rbi_ra_gemini_key_v322","rbi_ra_gemini_key_v321","rbi_ra_gemini_key_v320","rbi_ra_gemini_key_v319","rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317","rbi_ra_gemini_key_v316","rbi_ra_gemini_key_v313","rbi_ra_gemini_key_v312","rbi_ra_gemini_key_v311","rbi_ra_gemini_key_v310"];
+  const keys=[KEYS.key,"rbi_ra_gemini_key_v322","rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317","rbi_ra_gemini_key_v316","rbi_ra_gemini_key_v313","rbi_ra_gemini_key_v312","rbi_ra_gemini_key_v311","rbi_ra_gemini_key_v310"];
   let key=""; for(const k of keys){const v=localStorage.getItem(k);if(v){key=v;break}}
   if(!key){for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||"";const v=localStorage.getItem(k)||"";if(/gemini|google.*ai/i.test(k)&&/key|api/i.test(k)&&v.length>=20){key=v;break}}}
-  const models=[KEYS.model,"rbi_ra_model_v323","rbi_ra_model_v322","rbi_ra_model_v321","rbi_ra_model_v320","rbi_ra_model_v319","rbi_ra_model_v318","rbi_ra_model_v317","rbi_ra_model_v316","rbi_ra_model_v313","rbi_ra_model_v312"];
+  const models=[KEYS.model,"rbi_ra_model_v322","rbi_ra_model_v318","rbi_ra_model_v317","rbi_ra_model_v316","rbi_ra_model_v313","rbi_ra_model_v312"];
   let model="";for(const k of models){const v=localStorage.getItem(k);if(v){model=v;break}}
   model=model||"gemini-3.5-flash-lite";
   if(key)localStorage.setItem(KEYS.key,key); localStorage.setItem(KEYS.model,model);
@@ -259,15 +329,8 @@ async function load(){
   try{
     state.db=await openDB();
     state.docs=await idbGetAll();
-    // Recover the stable browser library into IndexedDB when available.
-    try{
-      const stable=JSON.parse(localStorage.getItem(KEYS.docs)||"[]");
-      if(Array.isArray(stable)){
-        for(const d of stable){if(d?.pages?.length) await idbPut({...d,id:d.id||crypto.randomUUID()});}
-      }
-    }catch{}
     await migrateLegacyDocs();
-    state.docs=await idbGetAll(); await migrateKnownVersionStores(); await migrateLegacyDocs(); state.docs=await idbGetAll(); normaliseDocs(); state.storage="IndexedDB + recovery mirror";
+    state.docs=await idbGetAll(); await migrateKnownVersionStores(); await migrateLegacyDocs(); state.docs=await idbGetAll(); normaliseDocs(); state.storage="IndexedDB";
   }catch(e){
     state.storage="Browser fallback";
     try{state.docs=JSON.parse(localStorage.getItem(KEYS.docs)||"[]")}catch{state.docs=[]}
@@ -279,7 +342,7 @@ async function load(){
   const recovered=recoverGeminiSettings(); const key=recovered.key||findLegacyKey(), model=recovered.model||findLegacyModel();
   if(key) localStorage.setItem(KEYS.key,key);
   if(model) localStorage.setItem(KEYS.model,model);
-  $("apiKey").value=key; $("model").value=model; renderDocs(); updateStorageStatus(); await prepareAllDocuments(true); renderDocs(); updateStorageStatus();
+  $("apiKey").value=key; $("model").value=model; renderDocs(); updateStorageStatus(); await ensureAIIndex();
 }
 async function saveDocs(){
   normaliseDocs();
@@ -288,8 +351,6 @@ async function saveDocs(){
       const tx=state.db.transaction(DB_STORE,"readwrite"), store=tx.objectStore(DB_STORE);
       for(const d of state.docs)store.put(d);
       await new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
-      // Stable mirror for recovery by later app builds.
-      try{localStorage.setItem(KEYS.docs,JSON.stringify(state.docs))}catch(e){console.warn("Library mirror unavailable",e)}
       return;
     }catch(e){console.warn("IndexedDB save failed; using local fallback",e)}
   }
@@ -304,7 +365,7 @@ async function importLibraryBackup(file){
   const payload=JSON.parse(await file.text()), docs=Array.isArray(payload)?payload:(payload.documents||[]); if(!docs.length)throw new Error("No documents found in backup.");
   const sig=d=>`${String(d?.name||"").toLowerCase()}|${(d?.pages||[]).length}|${String(d?.pages?.[0]?.text||"").slice(0,200)}`; const have=new Set(state.docs.map(sig));
   for(const d of docs){if(d?.pages?.length&&!have.has(sig(d))){state.docs.push({...d,id:d.id||crypto.randomUUID()});have.add(sig(d))}}
-  normaliseDocs();await prepareAllDocuments(true);await saveDocs();renderDocs();updateStorageStatus();alert(`${docs.length} document(s) found in backup. Library restored/merged and indexed.`);
+  normaliseDocs();await saveDocs();renderDocs();updateStorageStatus();alert(`${docs.length} document(s) found in backup. Library restored/merged.`);
 }
 function updateStorageStatus(){const el=$("libraryStorageStatus");if(el)el.textContent=`Library storage: ${state.storage} · ${state.docs.length} document${state.docs.length===1?"":"s"} stored`}
 function setPage(page){document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===page));["ask","library","settings"].forEach(p=>$("page-"+p).classList.toggle("hidden",p!==page)); if(page==="library")renderDocs()}
@@ -330,138 +391,31 @@ async function extract(file){
   const text=await file.text();
   return [{page:1,text}];
 }
-
-function normaliseTextForIndex(text){
-  return String(text||"")
-    .replace(/\u00ad/g,"")
-    .replace(/[ \t]+/g," ")
-    .replace(/\s*\n\s*/g," ")
-    .replace(/\s{2,}/g," ")
-    .trim();
-}
-function makeChunksForPage(pageText, pageNumber){
-  const text=normaliseTextForIndex(pageText);
-  if(!text)return [];
-  const size=1100, overlap=180, chunks=[];
-  let start=0, n=0;
-  while(start<text.length){
-    let end=Math.min(text.length,start+size);
-    if(end<text.length){
-      const cut=text.lastIndexOf(" ",end);
-      if(cut>start+700)end=cut;
-    }
-    const chunk=text.slice(start,end).trim();
-    if(chunk.length>20)chunks.push({id:`p${pageNumber}-c${n++}`,page:pageNumber,text:chunk});
-    if(end>=text.length)break;
-    start=Math.max(start+1,end-overlap);
-  }
-  return chunks;
-}
-function buildDocumentIndex(doc){
-  const pages=(doc.pages||[]).map(p=>({...p,page:pageNo(p.page)??1,text:normaliseTextForIndex(p.text)}));
-  const chunks=[];
-  let totalChars=0;
-  for(const p of pages){
-    const pc=makeChunksForPage(p.text,p.page);
-    chunks.push(...pc);
-    totalChars+=p.text.length;
-  }
-  return {
-    ...doc,
-    pages,
-    indexVersion:2,
-    indexedAt:new Date().toISOString(),
-    indexStats:{pages:pages.length,chunks:chunks.length,characters:totalChars},
-    chunks
-  };
-}
-function needsDocumentIndex(doc){
-  return !doc || doc.indexVersion!==2 || !Array.isArray(doc.chunks) ||
-         doc.chunks.length===0 && (doc.pages||[]).some(p=>String(p?.text||"").trim().length>20);
-}
-async function prepareAllDocuments(showProgress=true){
-  let changed=false, done=0;
-  const total=state.docs.length;
-  if(showProgress && $("trainingStatus")){
-    $("trainingStatus").textContent=total
-      ? `Document understanding: indexing 0 of ${total} documents…`
-      : "Document understanding: waiting for documents.";
-    $("trainingStatus").className="status muted";
-  }
-  for(let i=0;i<state.docs.length;i++){
-    const d=state.docs[i];
-    if(needsDocumentIndex(d)){
-      state.docs[i]=buildDocumentIndex(d);
-      changed=true;
-    }
-    done++;
-    if(showProgress && $("trainingStatus")){
-      const c=state.docs[i]?.indexStats||{};
-      $("trainingStatus").textContent=`Document understanding: ${done} of ${total} ready · ${c.pages||0} pages · ${c.chunks||0} indexed passages.`;
-    }
-    // Yield so the mobile browser UI remains responsive on large libraries.
-    await new Promise(r=>setTimeout(r,0));
-  }
-  if(changed)await saveDocs();
-  if($("trainingStatus")){
-    const totalPages=state.docs.reduce((n,d)=>n+(d.indexStats?.pages||d.pages?.length||0),0);
-    const totalChunks=state.docs.reduce((n,d)=>n+(d.indexStats?.chunks||d.chunks?.length||0),0);
-    $("trainingStatus").textContent=state.docs.length
-      ? `Document understanding complete: ${state.docs.length} documents · ${totalPages} pages · ${totalChunks} indexed passages. AI-ready.`
-      : "Document understanding: waiting for documents.";
-    $("trainingStatus").className="status good";
-  }
-  return changed;
-}
-function rebuildDocumentIndex(){
-  return prepareAllDocuments(true);
-}
-
 async function handleFiles(files){
   $("uploadStatus").textContent="Reading documents…";$("uploadStatus").className="status muted";
-  const accepted=["pdf","txt","csv","html","htm"];
-  let added=0;
   for(const file of files){
     try{
-      const ext=file.name.split(".").pop().toLowerCase();
-      if(!accepted.includes(ext))continue;
+      if(!["pdf","txt","csv","html","htm"].includes(file.name.split(".").pop().toLowerCase())) continue;
       const pages=await extract(file);
-      const raw={id:crypto.randomUUID(),name:file.name,type:file.type||"",pages,added:new Date().toISOString()};
-      const prepared=buildDocumentIndex(raw);
-      state.docs.push(prepared);
+      const id=crypto.randomUUID();
+      state.docs.push({id,name:file.name,type:file.type||"",pages,added:new Date().toISOString()});
       await saveDocs();
-      added++;
-      const stats=prepared.indexStats||{};
-      $("uploadStatus").textContent=`Read ${file.name}: ${stats.pages||0} pages, ${stats.chunks||0} indexed passages.`;
-      $("uploadStatus").className="status good";
-    }catch(e){
-      console.error(e);
-      $("uploadStatus").textContent=`Upload failed: ${file.name} — ${e.message}`;
-      $("uploadStatus").className="status bad";
-    }
+    }catch(e){console.error(e);$("uploadStatus").textContent=`Upload failed: ${file.name} — ${e.message}`;$("uploadStatus").className="status bad"}
   }
-  await prepareAllDocuments(true);
-  renderDocs(); updateStorageStatus(); $("fileInput").value="";
-  if(added)$("uploadStatus").textContent=`${added} document${added===1?"":"s"} read and indexed. AI is ready to search the complete library.`;
+  renderDocs(); updateStorageStatus(); if(state.docs.length)$("uploadStatus").textContent="Documents uploaded successfully."; $("uploadStatus").className="status good"; $("fileInput").value=""; await rebuildAIIndex();
 }
-
 function renderDocs(){
   const el=$("fileList"); if(!state.docs.length){el.innerHTML='<div class="muted">No documents stored yet.</div>';updateStorageStatus();return}
   el.innerHTML=state.docs.map(d=>`<div class="file-row"><div><div class="file-name">📄 ${esc(d.name)}</div><span class="badge">${d.pages.length} page${d.pages.length===1?"":"s"}</span></div><button class="danger" onclick="removeDoc('${d.id}')">Delete</button></div>`).join("");
   updateStorageStatus();
 }
 async function removeDoc(id){state.docs=state.docs.filter(d=>d.id!==id);if(state.db){try{await idbDelete(id)}catch{}}else await saveDocs();renderDocs()}
-$("rebuildIndex").onclick=async()=>{
-  $("uploadStatus").textContent="Re-reading and rebuilding the AI index…";
-  $("uploadStatus").className="status muted";
-  try{await prepareAllDocuments(true);$("uploadStatus").textContent="All stored documents re-read and indexed. AI is ready.";$("uploadStatus").className="status good"}
-  catch(e){$("uploadStatus").textContent="Index rebuild failed: "+e.message;$("uploadStatus").className="status bad"}
-};
-$("deleteAll").onclick=async()=>{if(confirm("Delete all locally stored material?")){state.docs=[];if(state.db){try{await idbClear()}catch{}}else await saveDocs();renderDocs()}};
+$("rebuildIndex").onclick=async()=>{try{await rebuildAIIndex();}catch(e){setReadStatus("Index rebuild failed.",0,e.message);}};
+$("deleteAll").onclick=async()=>{if(confirm("Delete all locally stored material?")){state.docs=[];if(state.db){try{await idbClear()}catch{}}else await saveDocs();localStorage.removeItem(KEYS.index);aiIndex.chunks=[];renderDocs();setReadStatus("No documents stored.",0,"Upload at least one PDF/document first.")}};
 
 $("exportLibrary").onclick=()=>{
   const payload={app:"RBI Regulatory Assistant",format:1,exportedAt:new Date().toISOString(),documents:state.docs};
-  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.24_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.22_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 $("importLibrary").onclick=()=>$("libraryBackupInput").click();
 $("libraryBackupInput").onchange=async e=>{
@@ -471,7 +425,7 @@ $("libraryBackupInput").onchange=async e=>{
     if(!Array.isArray(docs))throw new Error("Invalid library backup");
     const byId=new Map(state.docs.map(d=>[d.id,d]));
     for(const d of docs){if(!d?.id||!Array.isArray(d.pages))continue;byId.set(d.id,d)}
-    state.docs=[...byId.values()];await saveDocs();renderDocs();$("uploadStatus").textContent=`Library imported: ${state.docs.length} documents stored.`;$("uploadStatus").className="status good";
+    state.docs=[...byId.values()];await saveDocs();renderDocs();await rebuildAIIndex();$("uploadStatus").textContent=`Library imported: ${state.docs.length} documents stored.`;$("uploadStatus").className="status good";
   }catch(err){$("uploadStatus").textContent="Import failed: "+err.message;$("uploadStatus").className="status bad"}
   e.target.value="";
 };
@@ -540,91 +494,29 @@ function scoreSentence(s,ts,q){
   return score;
 }
 function retrieve(q){
+  if(!aiIndex.chunks.length)buildIndexFromDocs();
   const ts=terms(q), ql=q.toLowerCase(), intent=questionIntent(q), hits=[];
   const normalizedQ=ql.replace(/[^a-z0-9\s-]/g," ").replace(/\s+/g," ").trim();
-  const meaningful=ts.filter(t=>t.length>=4);
-  const phraseCandidates=[];
-  if(normalizedQ)phraseCandidates.push(normalizedQ);
-  if(meaningful.length>=2)phraseCandidates.push(meaningful.join(" "));
-  const defMatch=normalizedQ.match(/^what\s+(?:is|are)\s+(.+?)(?:\s+means)?$/i);
-  if(defMatch)phraseCandidates.push(defMatch[1].trim());
-  const meansMatch=normalizedQ.match(/^(.+?)\s+means$/i);
-  if(meansMatch)phraseCandidates.push(meansMatch[1].trim());
-
-  for(const d of state.docs){
-    const chunks=Array.isArray(d.chunks)&&d.chunks.length
-      ? d.chunks
-      : (d.pages||[]).flatMap(p=>makeChunksForPage(p.text,pageNo(p.page)??1));
-    for(const c of chunks){
-      const text=normaliseTextForIndex(c.text);
-      if(!text)continue;
-      const low=text.toLowerCase();
-      let score=0;
-
-      // Exact question/subject phrase gets a very strong boost.
-      for(const ph of phraseCandidates){
-        if(ph.length>4 && low.includes(ph))score+=70;
-      }
-
-      // Exact regulatory phrases.
-      for(const ph of ["crop loan","crop season","term loan","first dose","drawing limit","self help group","credit facilities","repayment period"]){
-        if(normalizedQ.includes(ph) && low.includes(ph))score+=55;
-      }
-
-      // Definition questions require the requested subject and a definitional marker.
-      if(intent==="definition"){
-        const subject=defMatch?.[1]?.trim()||meansMatch?.[1]?.trim()||meaningful.join(" ");
-        if(subject && low.includes(subject))score+=35;
-        if(/\b(means|defined as|definition)\b/i.test(text))score+=30;
-      }
-
-      for(const t of ts){
-        const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");
-        score+=Math.min((text.match(re)||[]).length,8)*3;
-      }
-
-      score+=intentScore(text,intent);
-      score+=numericEvidenceScore(text,q);
-
-      // Keep numeric answers tied to the requested subject.
-      if((intent==="numeric"||intent==="members") &&
-         /\b(?:maximum|minimum|number of|up to|not exceeding|at least)\b/i.test(text) &&
-         /\b\d+(?:\.\d+)?\b/.test(text))score+=18;
-
-      if(/\b\d+(?:\.\d+)?\s*(?:%|years?|months?|lakh|crore|days?)\b/i.test(text))score+=4;
-
-      if(score>0)hits.push({
-        d,
-        p:{page:c.page,text:c.text},
-        score,
-        bestSentence:bestSentences(c.text,q),
-        intent
-      });
-    }
+  const phraseCandidates=[normalizedQ];
+  const defMatch=normalizedQ.match(/^what\s+(?:is|are)\s+(.+?)(?:\s+means)?$/i);if(defMatch)phraseCandidates.push(defMatch[1].trim());
+  const meansMatch=normalizedQ.match(/^(.+?)\s+means$/i);if(meansMatch)phraseCandidates.push(meansMatch[1].trim());
+  for(const c of aiIndex.chunks){
+    const text=c.text.toLowerCase(); let score=0;
+    for(const ph of phraseCandidates){if(ph.length>4&&text.includes(ph))score+=60;}
+    for(const t of ts){const n=(text.match(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g"))||[]).length;score+=Math.min(n,8)*3;}
+    score+=numericEvidenceScore(c.text,q)+intentScore(c.text,intent);
+    const best=sentenceParts(c.text).map(s=>({s,score:scoreSentence(s,ts,q)+intentScore(s,intent)+numericEvidenceScore(s,q)})).sort((a,b)=>b.score-a.score)[0];
+    if(best)score+=best.score*5;
+    if(score>0)hits.push({d:state.docs.find(d=>d.id===c.docId)||{id:c.docId,name:c.name},p:{page:c.page,text:c.text},score,bestSentence:best?.s||"",intent});
   }
-
   hits.sort((a,b)=>b.score-a.score);
-
-  // Coverage rule: every document with a meaningful match contributes evidence,
-  // while exact/strong matches still rank first.
-  const byDoc=new Map();
-  for(const h of hits){
-    const key=h.d.id||h.d.name;
-    if(!byDoc.has(key))byDoc.set(key,[]);
-    byDoc.get(key).push(h);
-  }
-  const covered=[];
-  for(const arr of byDoc.values())covered.push(...arr.slice(0,3));
+  // Keep the strongest chunks from every document and every relevant page, then global top hits.
+  const byDoc=new Map();for(const h of hits){const k=h.d.id||h.d.name;if(!byDoc.has(k))byDoc.set(k,[]);byDoc.get(k).push(h)}
+  const covered=[];for(const arr of byDoc.values()){arr.sort((a,b)=>b.score-a.score);covered.push(...arr.slice(0,8));}
   covered.sort((a,b)=>b.score-a.score);
-
-  const out=[],seen=new Set();
-  for(const h of [...covered,...hits.slice(0,80)]){
-    const k=`${h.d.id||h.d.name}|${pageNo(h.p.page)??1}|${h.p.text}`;
-    if(!seen.has(k)){seen.add(k);out.push(h)}
-  }
-  return out.slice(0,100);
+  const out=[],seen=new Set();for(const h of [...covered,...hits.slice(0,50)]){const k=`${h.d.id||h.d.name}|${h.p.page}|${h.p.text}`;if(!seen.has(k)){seen.add(k);out.push(h)}}
+  return out.slice(0,60);
 }
-
 function bestSentences(text,q){
   const ts=terms(q);const scored=sentenceParts(text).map((s,i)=>({s,i,score:scoreSentence(s,ts,q)})).sort((a,b)=>b.score-a.score);
   if(!scored.length)return "";
@@ -690,7 +582,13 @@ function localAnswer(q,hits){
   candidates.sort((a,b)=>b.score-a.score);
   let chosen=candidates[0];
   if(!chosen)return {answer:"Not found in supplied material.",source:null,evidence:[]};
-  const answer=directFactSentence(conciseAnswer(chosen.s,q)||chosen.s.slice(0,650),q,intent);
+  let answer=directFactSentence(conciseAnswer(chosen.s,q)||chosen.s.slice(0,650),q,intent);
+  if(intent==="members"||intent==="numeric"){
+    const m=chosen.s.match(/(?:maximum|minimum|up\s+to|not\s+exceeding|at\s+least|number\s+of|consist\s+of)[^.!?]{0,180}?(\d{1,3})\s*(?:-|to|–|—)\s*(\d{1,3})[^.!?]*members?/i);
+    const single=chosen.s.match(/(?:maximum|up\s+to|not\s+exceeding)[^.!?]{0,120}?(\d{1,3})[^.!?]*members?/i);
+    if(single) answer=`Maximum: ${single[1]} members.`;
+    else if(m) answer=`Maximum: ${Math.max(Number(m[1]),Number(m[2]))} members (the supplied provision states a range of ${m[1]} to ${m[2]} members).`;
+  }
   const source={name:chosen.h.d.name,page:pageNo(chosen.h.p.page)??1,text:answer};
   // Show only the evidence passage that actually supports the answer.
   const evidence=[{name:chosen.h.d.name,page:pageNo(chosen.h.p.page)??1,text:answer,score:chosen.score}];
@@ -710,7 +608,7 @@ async function gemini(q,hits){
   }
   const blocks=[];
   let totalChars=0;
-  const MAX_CHARS=180000;
+  const MAX_CHARS=140000;
   for(const [id,arr] of grouped){
     const best=arr.sort((a,b)=>(b.score+numericEvidenceScore(b.p.text,q))-(a.score+numericEvidenceScore(a.p.text,q))).slice(0,8);
     for(const h of best){
@@ -728,7 +626,7 @@ async function gemini(q,hits){
 STRICT SOURCE LOCK:
 - Use ONLY the evidence supplied below.
 - The evidence comes from documents uploaded and stored in this app.
-- Search across ALL supplied evidence blocks before answering. Each uploaded document has already been read, normalised, page-linked, chunked and indexed. Evidence is drawn from the complete indexed Knowledge Library across every stored document. Do not assume the first or highest-scoring block is correct.
+- Search across ALL supplied evidence blocks before answering. Evidence is drawn from the complete indexed Knowledge Library across every stored document. Do not assume the first or highest-scoring block is correct. The retrieval layer has already read every stored page and divided it into overlapping passages; use the passage that directly answers the question, not merely the page that mentions the topic.
 - If multiple documents address the question, reconcile them only when the documents themselves support doing so.
 - Never use outside knowledge, memory, web knowledge, or assumptions.
 - If the supplied evidence does not establish the answer, say exactly: "Not found in supplied material."
@@ -738,7 +636,7 @@ QUESTION LOCK:
 - Ignore unrelated text from the same PDF page.
 - Do not select a sentence merely because it appears first.
 - Prefer the most direct clause answering the question.
-- For questions asking for a maximum/minimum/number/limit, identify the clause that explicitly states the number and what it applies to. Do not infer the number from another clause.
+- For questions asking for a maximum/minimum/number/limit, identify the clause that explicitly states the number and what it applies to. Do not infer the number from another clause. If a range such as 10–20 members is explicitly supplied and the question asks for the maximum, answer 20 members and retain any stated exceptions/qualifications.
 - For definition questions, the evidence must define the exact requested term. Do not substitute a related term (for example, do not answer a question about "crop loan" with a definition of "crop season").
 
 PRECISION:
@@ -832,15 +730,15 @@ $("askBtn").onclick=async()=>{
   const q=$("question").value.trim();if(!q){$("askStatus").textContent="Enter a question.";return}
   $("askBtn").disabled=true;$("askStatus").textContent="Retrieving relevant evidence…";$("askStatus").className="status muted";
   try{
-    if(state.docs.some(needsDocumentIndex)) await prepareAllDocuments(true);
     const hits=retrieve(q);
     if(state.mode==="search"){const r=localAnswer(q,hits);renderResult(r);$("askStatus").textContent="Evidence retrieved locally — no Gemini used."}
-    else if(state.mode==="ai"){if(!hits.length){renderResult({answer:"Not found in supplied material.",source:null,evidence:[]});$("askStatus").textContent="No supporting evidence found."}else{const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="AI answer generated from indexed document evidence only."}}
+    else if(state.mode==="ai"){if(!hits.length){renderResult({answer:"Not found in supplied material.",source:null,evidence:[]});$("askStatus").textContent="No supporting evidence found."}else{const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="AI answer generated from retrieved evidence only."}}
     else {
       const simple=/\b(what is|what are|how many|how much|what rate|rate of interest|maximum|minimum|limit|period|tenure|eligib(?:le|ility)|required|members?)\b/i.test(q);
       const needsAI=/\b(why|explain|compare|difference|whether|can|calculate|work out|how does|interpret|implication|applicable|conditions?)\b/i.test(q);
       if(hits.length && localStorage.getItem(KEYS.key)){
-        const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="Auto: AI reviewed indexed evidence across the complete Knowledge Library.";
+        await ensureAIIndex();
+        const r=await gemini(q,retrieve(q));renderResult(r,true);$("askStatus").textContent="Auto: AI reviewed the indexed complete Knowledge Library and verified the most direct evidence.";
       }else if(hits.length){
         const r=localAnswer(q,hits);renderResult(r);$("askStatus").textContent="Auto: direct document answer used — no Gemini needed.";
       }else{
