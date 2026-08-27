@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#124b9b">
-<title>RBI Regulatory Assistant v3.21</title>
+<title>RBI Regulatory Assistant v3.22</title>
 <style>
 :root{--blue:#124b9b;--blue2:#0d3f86;--ink:#1d2738;--muted:#69758b;--bg:#f4f7fb;--line:#d8e2f0;--soft:#edf4ff;--good:#087d4f;--bad:#c92e23;--white:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px}
@@ -22,7 +22,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.21</div></div></div>
+  <div class="brand"><div class="logo">R</div><div><div class="title">RBI Regulatory Assistant</div><div class="subtitle">Personal closed-source regulatory assistant · v3.22</div></div></div>
   <nav>
     <button class="tab active" data-page="ask">Ask RBI</button>
     <button class="tab" data-page="library">Knowledge Library</button>
@@ -63,7 +63,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
 <section id="page-library" class="hidden">
   <div class="card">
     <h1 class="section-title">Knowledge Library</h1>
-    <p class="muted">Upload material progressively. Documents are stored in IndexedDB and recovered across app revisions where the browser origin is the same. AI searches <b>every stored document</b> and uses the most relevant evidence from each matching document.</p>
+    <p class="muted">Upload material progressively. Documents are stored in IndexedDB and recovered across app revisions where the browser origin is the same. AI searches <b>every stored document</b>, prioritises exact clauses and numeric limits, and uses the most relevant evidence from each matching document.</p>
     <div class="drop" id="drop">
       <strong>Tap here to select documents</strong>
       PDF, TXT, CSV or HTML · multiple files allowed
@@ -101,18 +101,18 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid
     <div class="check">Source and page shown when established</div>
     <div class="check">No guessing when evidence is insufficient</div>
   </div>
-  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.21</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
+  <div class="card"><h2 class="section-title">About this app</h2><b>RBI Regulatory Assistant v3.22</b><p class="muted">Personal document-grounded regulatory assistant with AI and no-AI document-search modes.</p></div>
   <div class="card"><h2 class="section-title">Strict source policy</h2>
     <div class="check">No internet search by the app</div><div class="check">No outside RBI knowledge</div><div class="check">Say “Not found in supplied material” when unsupported</div><div class="check">Cite document/page where the model can establish it</div>
   </div>
 </section>
-<div class="footer">RBI Regulatory Assistant v3.21 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
+<div class="footer">RBI Regulatory Assistant v3.22 · Personal browser application · Verify important regulatory conclusions against the original document.</div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <script>
-const VERSION="3.21";
-const KEYS={docs:"rbi_ra_docs_v321",key:"rbi_ra_gemini_key_v321",model:"rbi_ra_model_v321"};
+const VERSION="3.22";
+const KEYS={docs:"rbi_ra_docs_v322",key:"rbi_ra_gemini_key_v322",model:"rbi_ra_model_v322"};
 const DB_NAME="rbi_regulatory_assistant_library_v1",DB_VERSION=1,DB_STORE="documents";
 const state={docs:[],mode:"auto",recognition:null,db:null,storage:"IndexedDB"};
 
@@ -233,7 +233,7 @@ function findLegacyModel(){
   return "gemini-3.5-flash-lite";
 }
 async function migrateKnownVersionStores(){
-  const docKeys=["rbi_ra_docs_v321","rbi_ra_docs_v320","rbi_ra_docs_v319","rbi_ra_docs_v318","rbi_ra_docs_v317","rbi_ra_docs_v316","rbi_ra_docs_v313","rbi_ra_docs_v312","rbi_ra_docs_v311","rbi_ra_docs_v310"];
+  const docKeys=["rbi_ra_docs_v322","rbi_ra_docs_v320","rbi_ra_docs_v319","rbi_ra_docs_v318","rbi_ra_docs_v317","rbi_ra_docs_v316","rbi_ra_docs_v313","rbi_ra_docs_v312","rbi_ra_docs_v311","rbi_ra_docs_v310"];
   const merged=[];
   for(const k of docKeys){try{const a=JSON.parse(localStorage.getItem(k)||"[]");if(Array.isArray(a))merged.push(...a)}catch{}}
   if(!merged.length)return;
@@ -243,10 +243,10 @@ async function migrateKnownVersionStores(){
   normaliseDocs(); await saveDocs();
 }
 function recoverGeminiSettings(){
-  const keys=[KEYS.key,"rbi_ra_gemini_key_v321","rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317","rbi_ra_gemini_key_v316","rbi_ra_gemini_key_v313","rbi_ra_gemini_key_v312","rbi_ra_gemini_key_v311","rbi_ra_gemini_key_v310"];
+  const keys=[KEYS.key,"rbi_ra_gemini_key_v322","rbi_ra_gemini_key_v318","rbi_ra_gemini_key_v317","rbi_ra_gemini_key_v316","rbi_ra_gemini_key_v313","rbi_ra_gemini_key_v312","rbi_ra_gemini_key_v311","rbi_ra_gemini_key_v310"];
   let key=""; for(const k of keys){const v=localStorage.getItem(k);if(v){key=v;break}}
   if(!key){for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||"";const v=localStorage.getItem(k)||"";if(/gemini|google.*ai/i.test(k)&&/key|api/i.test(k)&&v.length>=20){key=v;break}}}
-  const models=[KEYS.model,"rbi_ra_model_v321","rbi_ra_model_v318","rbi_ra_model_v317","rbi_ra_model_v316","rbi_ra_model_v313","rbi_ra_model_v312"];
+  const models=[KEYS.model,"rbi_ra_model_v322","rbi_ra_model_v318","rbi_ra_model_v317","rbi_ra_model_v316","rbi_ra_model_v313","rbi_ra_model_v312"];
   let model="";for(const k of models){const v=localStorage.getItem(k);if(v){model=v;break}}
   model=model||"gemini-3.5-flash-lite";
   if(key)localStorage.setItem(KEYS.key,key); localStorage.setItem(KEYS.model,model);
@@ -341,7 +341,7 @@ $("deleteAll").onclick=async()=>{if(confirm("Delete all locally stored material?
 
 $("exportLibrary").onclick=()=>{
   const payload={app:"RBI Regulatory Assistant",format:1,exportedAt:new Date().toISOString(),documents:state.docs};
-  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.21_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="RBI_Regulatory_Assistant_v3.22_Library_Backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 $("importLibrary").onclick=()=>$("libraryBackupInput").click();
 $("libraryBackupInput").onchange=async e=>{
@@ -380,7 +380,8 @@ function questionIntent(q){
   if(/margin|contribution|own\s+contribution/.test(l))return "margin";
   if(/eligib|criteria|qualif/.test(l))return "eligibility";
   if(/subvention|subsid/.test(l))return "subvention";
-  if(/limit|maximum|minimum|amount|sanction|credit\s+limit|drawing\s+power/.test(l))return "amount";
+  if(/maximum|minimum|how\s+many|number\s+of|members?/.test(l))return "numeric";
+  if(/limit|amount|sanction|credit\s+limit|drawing\s+power/.test(l))return "amount";
   if(/kyc|know\s+your\s+customer/.test(l))return "kyc";
   return "general";
 }
@@ -392,6 +393,7 @@ function intentScore(s,intent){
     repayment:[/repay/,/tenure/,/period/,/duration/,/instal+ment/],
     interest:[/interest/,/rate/,/mclr/,/benchmark/],
     members:[/members?/],
+    numeric:[/maximum/,/minimum/,/members?/,/number/,/up to/,/not exceeding/,/at least/,/more than/,/less than/],
     firstdose:[/first\s+(dose|loan)/,/first\s+time/,/corpus/],
     margin:[/margin/,/contribution/],
     eligibility:[/eligib/,/criteria/,/qualif/],
@@ -430,6 +432,7 @@ function retrieve(q){
     const meansMatch=normalizedQ.match(/^(.+?)\s+means$/i); if(meansMatch)phraseCandidates.push(meansMatch[1].trim());
     for(const ph of phraseCandidates){if(ph.length>4 && text.toLowerCase().includes(ph))score+=45;}
     if(intent==="definition" && /\bmeans\b|\bdefined\s+as\b|\bdefinition\b/i.test(text))score+=8;
+    score += numericEvidenceScore(text,q);
     for(const t of ts){
       const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");
       score+=Math.min((text.match(re)||[]).length,8)*2;
@@ -481,8 +484,9 @@ function conciseAnswer(sentence,q){
     const m=s.match(/[^.]*?(?:interest|rate|mclr|benchmark)[^.]*?\d+(?:\.\d+)?\s*(?:%|per\s+annum)[^.]*\.?/i); if(m)out=m[0];
   } else if(intent==="repayment"){
     const m=s.match(/[^.]*?(?:repay|repayment|tenure|period|duration|instal+ment)[^.]*?(?:\d+(?:\.\d+)?\s*(?:years?|months?|days?)|maximum\s+period|minimum\s+period)[^.]*\.?/i); if(m)out=m[0];
-  } else if(intent==="members"){
-    const m=s.match(/[^.]*?\b(?:\d+\s*[-–]\s*\d+|\d+)\s+members?[^.]*\.?/i); if(m)out=m[0];
+  } else if(intent==="members" || intent==="numeric"){
+    const m=s.match(/[^.]*?(?:maximum|minimum|number\s+of|up\s+to|not\s+exceeding|at\s+least|more\s+than|less\s+than|members?)[^.]*?(?:\b\d+(?:\.\d+)?\b|members?)[^.]*\.?/i);
+    if(m)out=m[0];
   } else if(intent==="margin"){
     const m=s.match(/[^.]*?margin[^.]*?\d+(?:\.\d+)?\s*%[^.]*\.?/i); if(m)out=m[0];
   } else if(intent==="definition"){
@@ -495,19 +499,34 @@ function conciseAnswer(sentence,q){
   }
   return out.slice(0,650);
 }
+function numericEvidenceScore(text,q){
+  const l=(text||"").toLowerCase(); const ql=q.toLowerCase(); let n=0;
+  if(/maximum|minimum|how\s+many|number\s+of|members?/.test(ql)){
+    if(/maximum|minimum|number\s+of|up\s+to|not\s+exceeding|at\s+least/.test(l))n+=12;
+    if(/members?/.test(l))n+=10;
+    if(/\b\d{1,3}\b/.test(l))n+=8;
+    if(/(?:maximum|minimum|up\s+to|not\s+exceeding|at\s+least)[^.!?]{0,120}\b\d{1,3}\b[^.!?]{0,80}members?/i.test(l))n+=20;
+  }
+  return n;
+}
+function directFactSentence(s,q,intent){
+  if(intent!=="numeric" && intent!=="amount")return s;
+  const m=s.match(/[^.!?]*(?:maximum|minimum|how\s+many|number\s+of|up\s+to|not\s+exceeding|at\s+least)[^.!?]*(?:\b\d+(?:\.\d+)?\b)[^.!?]*/i);
+  return m?m[0].trim():s;
+}
 function localAnswer(q,hits){
   if(!hits.length)return {answer:"Not found in supplied material.",source:null,evidence:[]};
   const intent=questionIntent(q),candidates=[];
   for(const h of hits){
     for(const s of sentenceParts(h.p.text||"")){
-      const sc=scoreSentence(s,terms(q),q)+intentScore(s,intent)+(h.score/20);
+      const sc=scoreSentence(s,terms(q),q)+intentScore(s,intent)+numericEvidenceScore(s,q)+(h.score/20);
       candidates.push({s,score:sc,h});
     }
   }
   candidates.sort((a,b)=>b.score-a.score);
   let chosen=candidates[0];
   if(!chosen)return {answer:"Not found in supplied material.",source:null,evidence:[]};
-  const answer=conciseAnswer(chosen.s,q)||chosen.s.slice(0,650);
+  const answer=directFactSentence(conciseAnswer(chosen.s,q)||chosen.s.slice(0,650),q,intent);
   const source={name:chosen.h.d.name,page:pageNo(chosen.h.p.page)??1,text:answer};
   // Show only the evidence passage that actually supports the answer.
   const evidence=[{name:chosen.h.d.name,page:pageNo(chosen.h.p.page)??1,text:answer,score:chosen.score}];
@@ -529,7 +548,7 @@ async function gemini(q,hits){
   let totalChars=0;
   const MAX_CHARS=90000;
   for(const [id,arr] of grouped){
-    const best=arr.sort((a,b)=>b.score-a.score).slice(0,3);
+    const best=arr.sort((a,b)=>(b.score+numericEvidenceScore(b.p.text,q))-(a.score+numericEvidenceScore(a.p.text,q))).slice(0,4);
     for(const h of best){
       const snippet=snippets(h,q);
       const block=`DOCUMENT: ${h.d.name}\nPAGE: ${pageNo(h.p.page)??1}\nEVIDENCE:\n${snippet}`;
@@ -555,6 +574,7 @@ QUESTION LOCK:
 - Ignore unrelated text from the same PDF page.
 - Do not select a sentence merely because it appears first.
 - Prefer the most direct clause answering the question.
+- For questions asking for a maximum/minimum/number/limit, identify the clause that explicitly states the number and what it applies to. Do not infer the number from another clause.
 - For definition questions, the evidence must define the exact requested term. Do not substitute a related term (for example, do not answer a question about "crop loan" with a definition of "crop season").
 
 PRECISION:
@@ -562,6 +582,7 @@ PRECISION:
 - Add only essential conditions/qualifications.
 - Do not invent calculations.
 - Preserve exact regulatory terminology.
+- If the question asks for a numeric figure, state the figure and its unit/subject exactly as supported by the evidence.
 
 TERMINOLOGY LOCK:
 Do not confuse loan amount, sanction amount, CCL, drawing power, outstanding balance, limit, corpus, first dose, repeat loan, interest rate, margin or repayment period.
@@ -586,7 +607,7 @@ ${q}`;
   if(!r.ok)throw new Error(data?.error?.message||`HTTP ${r.status}`);
   const text=data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join("")||"No answer returned.";
 
-  const evidence=hits.map(h=>({
+  const evidence=hits.slice().sort((a,b)=>(b.score+numericEvidenceScore(b.p.text,q))-(a.score+numericEvidenceScore(a.p.text,q))).slice(0,6).map(h=>({
     name:h?.d?.name||"Unknown document",
     page:pageNo(h?.p?.page)??1,
     text:snippets(h,q),
@@ -654,7 +675,7 @@ $("askBtn").onclick=async()=>{
       const simple=/\b(what is|what are|how many|how much|what rate|rate of interest|maximum|minimum|limit|period|tenure|eligib(?:le|ility)|required|members?)\b/i.test(q);
       const needsAI=/\b(why|explain|compare|difference|whether|can|calculate|work out|how does|interpret|implication|applicable|conditions?)\b/i.test(q);
       if(hits.length && localStorage.getItem(KEYS.key)){
-        const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="Auto: AI reviewed relevant evidence across the stored Knowledge Library.";
+        const r=await gemini(q,hits);renderResult(r,true);$("askStatus").textContent="Auto: AI reviewed exact and numeric evidence across the stored Knowledge Library.";
       }else if(hits.length){
         const r=localAnswer(q,hits);renderResult(r);$("askStatus").textContent="Auto: direct document answer used — no Gemini needed.";
       }else{
