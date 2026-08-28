@@ -1,2 +1,291 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>RBI Regulatory Assistant v3.26</title><style>:root{--b:#1658a8;--ink:#18243a;--mut:#586a84;--line:#d8e4f3;--soft:#f1f6fd}*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}header{background:linear-gradient(135deg,#174f98,#2264b7);color:#fff;padding:20px 18px 16px;position:sticky;top:0;z-index:5;box-shadow:0 5px 18px #173e7222}.brand{display:flex;gap:15px;align-items:center}.logo{width:72px;height:72px;border-radius:22px;background:#fff;color:var(--b);display:grid;place-items:center;font-size:52px;font-weight:900}.h1{font-size:27px;font-weight:900}.sub{font-size:17px;font-weight:750;opacity:.9}.tabs{display:flex;gap:10px;margin-top:18px}.tab{flex:1;border:2px solid #ffffff55;background:#ffffff10;color:#fff;border-radius:22px;padding:13px 10px;font-size:17px;font-weight:850}.tab.active{background:#fff;color:var(--b);border-color:#fff}main{max-width:900px;margin:auto;padding:14px 12px 50px}.card{background:#fff;border:2px solid var(--line);border-radius:25px;padding:20px;margin:14px 0;box-shadow:0 5px 18px #254a7810}h2{font-size:31px;margin:2px 0 18px}.notice{background:var(--soft);border-radius:22px;padding:17px;color:var(--mut);font-weight:750;line-height:1.55}textarea{width:100%;min-height:145px;margin-top:14px;border:2px solid var(--line);border-radius:22px;padding:18px;font-size:18px;outline:0}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}button,.filebtn{border:0;border-radius:18px;padding:13px 18px;font-size:17px;font-weight:850;background:#eef3f9;color:#26344a}.primary,.filebtn{background:var(--b);color:#fff}.green{background:#e4f6ef;color:#087b52}.status{margin-top:13px;color:#087b52;font-weight:800}.progress{height:10px;background:#e8eef7;border-radius:99px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:var(--b)}.label{color:var(--b);font-weight:900;letter-spacing:1px;font-size:20px}.answer{font-size:20px;line-height:1.55;font-weight:650;white-space:pre-wrap;margin-top:8px}.box{border:2px solid var(--line);border-radius:22px;padding:17px;margin-top:14px}.small{font-size:14px;color:var(--mut)}.doc{padding:13px 0;border-bottom:1px solid #e6edf6;font-weight:800}.hidden{display:none!important}input[type=file]{display:none}input[type=password]{width:100%;padding:13px;border:2px solid var(--line);border-radius:15px;font-size:16px}.setting{display:block;font-weight:800;margin:16px 0 7px}.check{margin-top:14px;font-weight:750}footer{text-align:center;color:#72829a;font-size:13px;padding:20px}@media(max-width:600px){.h1{font-size:25px}.sub{font-size:16px}.logo{width:68px;height:68px;font-size:48px}.tab{font-size:16px;padding:12px 7px}.card{padding:17px}}
-</style></head><body><header><div class="brand"><div class="logo">R</div><div><div class="h1">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.26</div></div></div><div class="tabs"><button class="tab active" data-t="ask">Ask RBI</button><button class="tab" data-t="lib">Knowledge Library</button><button class="tab" data-t="set">Settings</button></div></header><main><section id="ask"><div class="card"><div class="notice"><b>Document Reading Engine v3.26</b><br>Read first → index page-by-page → retrieve evidence → answer. Document name and page number stay attached to every evidence block. Unsupported facts are not guessed.</div><textarea id="q" placeholder="Ask from the loaded documents, e.g. What is the maximum number of members in an SHG?"></textarea><div class="row"><button class="primary" id="ask">Ask RBI</button><button class="green" id="speak">🎙️ Speak</button><button id="clear">Clear</button></div><div class="status" id="status">Ready. Load documents in Knowledge Library first.</div></div><div class="card"><h2>Answer</h2><div class="notice">Smart answer: direct answer first; essential condition second; exact source/page when established.</div><div style="margin-top:18px"><div class="label">ANSWER</div><div class="answer" id="ans">No question answered yet.</div><div id="src"></div><div id="ev"></div></div></div></section><section id="lib" class="hidden"><div class="card"><h2>Knowledge Library</h2><div class="notice"><b>First read → then index → then answer.</b><br>PDFs are extracted page-by-page. Text/CSV/JSON/Markdown files are indexed as documents. All retrieval is local except optional Gemini synthesis.</div><div class="row"><label class="filebtn">＋ Add documents<input id="files" type="file" multiple accept=".pdf,.txt,.md,.csv,.json"></label><button id="clearLib">Clear Library</button></div><div class="progress"><div class="bar" id="bar"></div></div><div class="status" id="ls">No documents loaded.</div><div id="docs"></div></div></section><section id="set" class="hidden"><div class="card"><h2>Settings</h2><label class="setting">Gemini API key (optional)</label><input id="key" type="password" placeholder="Stored only in this browser"><div class="small">Without a key, the evidence retrieval engine still works. With a key, Gemini may synthesise an answer strictly from retrieved evidence.</div><div class="check"><label><input id="strict" type="checkbox" checked> Strict evidence lock</label></div><div class="row"><button class="primary" id="save">Save settings</button><button id="reset">Reset</button></div></div><div class="card"><h3>v3.26 reading safeguards</h3><ol style="line-height:1.7"><li>Every PDF page is extracted separately.</li><li>Page number is stored with each text block.</li><li>PDF line-break and spacing noise is normalised without changing wording.</li><li>Search ranks exact phrases, words and numeric matches.</li><li>Top evidence is displayed for checking.</li><li>If no supporting evidence exists, the app says “Not found in supplied material.”</li></ol></div></section><footer>RBI Regulatory Assistant · v3.26 · Evidence-first document reader</footer></main><script type="module">import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';window.pdfjsLib=pdfjsLib;const S={docs:[],chunks:[]},$=x=>document.getElementById(x);const K='rbi326';function norm(t){return t.replace(/\u00ad/g,'').replace(/-\n(?=[a-z])/gi,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim()}function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}function chunk(doc,page,text){text=norm(text);let w=text.split(/\s+/),n=180,o=35;for(let i=0;i<w.length;i+=n-o){let t=w.slice(i,i+n).join(' ');if(t.length>25)S.chunks.push({doc,page,text:t});if(i+n>=w.length)break}}function render(){ $('docs').innerHTML=S.docs.map(d=>`<div class="doc">${esc(d.name)} <span class="small">· ${d.pages} page(s) · indexed ✓</span></div>`).join('');$('ls').textContent=S.docs.length?`${S.docs.length} document(s) · ${S.chunks.length} searchable evidence blocks · Ready.`:'No documents loaded.'}async function pdf(file){let data=new Uint8Array(await file.arrayBuffer()),pdf=await pdfjsLib.getDocument({data}).promise;let d={name:file.name,pages:pdf.numPages};S.docs.push(d);for(let p=1;p<=pdf.numPages;p++){let pg=await pdf.getPage(p),tc=await pg.getTextContent(),txt=tc.items.map(x=>x.str||'').join(' ');chunk(file.name,p,txt);$('bar').style.width=(p/pdf.numPages*100)+'%';$('ls').textContent=`Reading ${file.name} · page ${p} of ${pdf.numPages}…`;await new Promise(r=>setTimeout(r,0))}}async function textFile(file){let t=await file.text();S.docs.push({name:file.name,pages:1});chunk(file.name,1,t)}$('files').onchange=async e=>{S.docs=[];S.chunks=[];$('bar').style.width='0%';for(let f of e.target.files){try{if(f.name.toLowerCase().endsWith('.pdf'))await pdf(f);else await textFile(f)}catch(err){$('ls').textContent='Could not read '+f.name+': '+err.message}}$('bar').style.width='100%';render();localStorage.setItem(K,JSON.stringify({docs:S.docs,chunks:S.chunks}))};function toks(q){return q.toLowerCase().replace(/[^\p{L}\p{N}%₹.-]+/gu,' ').split(/\s+/).filter(x=>x.length>1)}function retrieve(q){let ts=toks(q),ql=q.toLowerCase();return S.chunks.map(c=>{let x=c.text.toLowerCase(),s=x.includes(ql)?100:0;for(let t of ts){if(x.includes(t))s+=4;if(/^\d/.test(t)&&x.includes(t))s+=12}if(/maximum|minimum|limit|number|members|amount|rate|percent|₹|lakh|crore/i.test(q)&&/\d/.test(c.text))s+=8;return {...c,s}}).filter(x=>x.s>3).sort((a,b)=>b.s-a.s).slice(0,8)}function direct(q,h){let all=h.map(x=>x.text).join(' ');if(/maximum.*members|members.*maximum|maximum number.*members|how many.*members/i.test(q)){let m=all.match(/\b\d+\s*(?:to|-|–)\s*\d+\s*members\b/i);if(m)return m[0].replace(/\s*-\s*/,' to ')}return null}async function gemini(q,h){let key=localStorage.getItem(K+'key');if(!key)return null;let ev=h.map((x,i)=>`[${i+1}] ${x.doc}, page ${x.page}: ${x.text}`).join('\n');let prompt=`Answer ONLY from the supplied evidence. Do not use outside knowledge. If insufficient, say exactly "Not found in supplied material." Direct answer first, essential condition second. Preserve all qualifiers and numbers. QUESTION: ${q}\nEVIDENCE:\n${ev}`;try{let r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.1,maxOutputTokens:500}})});let j=await r.json();return j?.candidates?.[0]?.content?.parts?.map(x=>x.text||'').join('')||null}catch(e){return null}}$('ask').onclick=async()=>{let q=$('q').value.trim();if(!q)return;if(!S.chunks.length){$('ans').textContent='No documents are indexed. Add documents first.';return}$('status').textContent='Searching the complete indexed Knowledge Library…';let h=retrieve(q),a=direct(q,h)||await gemini(q,h);if(!a)a=h.length?h[0].text:'Not found in supplied material.';$('ans').textContent=a;$('src').innerHTML=h.length?`<div class="box"><div class="label">SOURCE</div><b>${esc(h[0].doc)} · Page ${h[0].page}</b></div>`:'';$('ev').innerHTML=h.length?`<div class="box"><div class="label">EVIDENCE USED</div>${h.slice(0,4).map((x,i)=>`<p><b>${i+1}. ${esc(x.doc)} — Page ${x.page}</b><br>${esc(x.text)}</p>`).join('')}</div>`:'';$('status').textContent=h.length?'Auto: AI reviewed indexed evidence and selected the most direct supporting evidence.':'Auto: no supporting evidence found.'};$('clear').onclick=()=>{$('q').value='';$('ans').textContent='No question answered yet.';$('src').innerHTML='';$('ev').innerHTML=''};$('clearLib').onclick=()=>{S.docs=[];S.chunks=[];render();localStorage.removeItem(K)};$('save').onclick=()=>{localStorage.setItem(K+'key',$('key').value.trim());alert('Settings saved.')};$('reset').onclick=()=>{localStorage.removeItem(K+'key');$('key').value=''};$('speak').onclick=()=>{let R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R)return alert('Speech recognition is not supported here.');let r=new R;r.lang='en-IN';r.onresult=e=>$('q').value=e.results[0][0].transcript;r.start()};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');['ask','lib','set'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.t))});try{let x=JSON.parse(localStorage.getItem(K)||'null');if(x){S.docs=x.docs||[];S.chunks=x.chunks||[];render()}}catch(e){}$('key').value=localStorage.getItem(K+'key')||'';</script></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>RBI Regulatory Assistant v3.27</title><style>:root{--b:#1658a8;--ink:#18243a;--mut:#586a84;--line:#d8e4f3;--soft:#f1f6fd}*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}header{background:linear-gradient(135deg,#174f98,#2264b7);color:#fff;padding:20px 18px 16px;position:sticky;top:0;z-index:5;box-shadow:0 5px 18px #173e7222}.brand{display:flex;gap:15px;align-items:center}.logo{width:72px;height:72px;border-radius:22px;background:#fff;color:var(--b);display:grid;place-items:center;font-size:52px;font-weight:900}.h1{font-size:27px;font-weight:900}.sub{font-size:17px;font-weight:750;opacity:.9}.tabs{display:flex;gap:10px;margin-top:18px}.tab{flex:1;border:2px solid #ffffff55;background:#ffffff10;color:#fff;border-radius:22px;padding:13px 10px;font-size:17px;font-weight:850}.tab.active{background:#fff;color:var(--b);border-color:#fff}main{max-width:900px;margin:auto;padding:14px 12px 50px}.card{background:#fff;border:2px solid var(--line);border-radius:25px;padding:20px;margin:14px 0;box-shadow:0 5px 18px #254a7810}h2{font-size:31px;margin:2px 0 18px}.notice{background:var(--soft);border-radius:22px;padding:17px;color:var(--mut);font-weight:750;line-height:1.55}textarea{width:100%;min-height:145px;margin-top:14px;border:2px solid var(--line);border-radius:22px;padding:18px;font-size:18px;outline:0}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}button,.filebtn{border:0;border-radius:18px;padding:13px 18px;font-size:17px;font-weight:850;background:#eef3f9;color:#26344a}.primary,.filebtn{background:var(--b);color:#fff}.green{background:#e4f6ef;color:#087b52}.status{margin-top:13px;color:#087b52;font-weight:800}.progress{height:10px;background:#e8eef7;border-radius:99px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:var(--b)}.label{color:var(--b);font-weight:900;letter-spacing:1px;font-size:20px}.answer{font-size:20px;line-height:1.55;font-weight:650;white-space:pre-wrap;margin-top:8px}.box{border:2px solid var(--line);border-radius:22px;padding:17px;margin-top:14px}.small{font-size:14px;color:var(--mut)}.doc{padding:13px 0;border-bottom:1px solid #e6edf6;font-weight:800}.hidden{display:none!important}input[type=file]{display:none}input[type=password]{width:100%;padding:13px;border:2px solid var(--line);border-radius:15px;font-size:16px}.setting{display:block;font-weight:800;margin:16px 0 7px}.check{margin-top:14px;font-weight:750}footer{text-align:center;color:#72829a;font-size:13px;padding:20px}@media(max-width:600px){.h1{font-size:25px}.sub{font-size:16px}.logo{width:68px;height:68px;font-size:48px}.tab{font-size:16px;padding:12px 7px}.card{padding:17px}}
+</style></head><body><header><div class="brand"><div class="logo">R</div><div><div class="h1">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.27</div></div></div><div class="tabs"><button class="tab active" data-t="ask">Ask RBI</button><button class="tab" data-t="lib">Knowledge Library</button><button class="tab" data-t="set">Settings</button></div></header><main><section id="ask"><div class="card"><div class="notice"><b>Document Reading Engine v3.27</b><br>Read first → extract/OCR every page → index page-by-page → rank exact evidence → answer. Document name and page number stay attached to every evidence block. Scanned pages are OCR-checked. Unsupported facts are not guessed.</div><textarea id="q" placeholder="Ask from the loaded documents, e.g. What is the maximum number of members in an SHG?"></textarea><div class="row"><button class="primary" id="ask">Ask RBI</button><button class="green" id="speak">🎙️ Speak</button><button id="clear">Clear</button></div><div class="status" id="status">Ready. Load documents in Knowledge Library first.</div></div><div class="card"><h2>Answer</h2><div class="notice">Smart answer: direct answer first; essential condition second; exact source/page when established.</div><div style="margin-top:18px"><div class="label">ANSWER</div><div class="answer" id="ans">No question answered yet.</div><div id="src"></div><div id="ev"></div></div></div></section><section id="lib" class="hidden"><div class="card"><h2>Knowledge Library</h2><div class="notice"><b>First read → then index → then answer.</b><br>PDFs are extracted page-by-page. Text/CSV/JSON/Markdown files are indexed as documents. All retrieval is local except optional Gemini synthesis.</div><div class="row"><label class="filebtn">＋ Add documents<input id="files" type="file" multiple accept=".pdf,.txt,.md,.csv,.json"></label><button id="clearLib">Clear Library</button></div><div class="progress"><div class="bar" id="bar"></div></div><div class="status" id="ls">No documents loaded.</div><div id="docs"></div></div></section><section id="set" class="hidden"><div class="card"><h2>Settings</h2><label class="setting">Gemini API key (optional)</label><input id="key" type="password" placeholder="Stored only in this browser"><div class="small">Without a key, the evidence retrieval engine still works. With a key, Gemini may synthesise an answer strictly from retrieved evidence.</div><div class="check"><label><input id="strict" type="checkbox" checked> Strict evidence lock</label></div><div class="row"><button class="primary" id="save">Save settings</button><button id="reset">Reset</button></div></div><div class="card"><h3>v3.27 reading safeguards</h3><ol style="line-height:1.7"><li>Every PDF page is extracted separately.</li><li>Page number is stored with each text block.</li><li>PDF line-break and spacing noise is normalised without changing wording.</li><li>Search ranks exact phrases, words and numeric matches.</li><li>Top evidence is displayed for checking.</li><li>If no supporting evidence exists, the app says “Not found in supplied material.”</li></ol></div></section><footer>RBI Regulatory Assistant · v3.27 · Evidence-first document reader</footer></main><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script type="module">
+import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+
+window.pdfjsLib=pdfjsLib;
+const S={docs:[],chunks:[],pages:[]};
+const $=x=>document.getElementById(x);
+const K='rbi327';
+
+function norm(t){
+  return String(t||'')
+    .replace(/\u00ad/g,'')
+    .replace(/-\s*\n\s*(?=[a-z])/gi,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+function addPage(doc,page,text,method='PDF text'){
+  text=norm(text);
+  if(!text)return;
+  S.pages.push({doc,page,text,method});
+  // Smaller overlapping chunks improve retrieval without losing page linkage.
+  const words=text.split(/\s+/), size=120, overlap=30;
+  for(let i=0;i<words.length;i+=size-overlap){
+    const t=words.slice(i,i+size).join(' ');
+    if(t.length>20)S.chunks.push({doc,page,text:t,method});
+    if(i+size>=words.length)break;
+  }
+}
+
+function render(){
+  $('docs').innerHTML=S.docs.map(d=>
+    `<div class="doc">${esc(d.name)} <span class="small">· ${d.pages} page(s) · ${d.ocr||0} OCR page(s) · indexed ✓</span></div>`
+  ).join('');
+  $('ls').textContent=S.docs.length
+    ? `${S.docs.length} document(s) · ${S.pages.length} pages read · ${S.chunks.length} searchable evidence blocks · Ready.`
+    : 'No documents loaded.';
+}
+
+function pdfPageCanvas(page,scale=1.45){
+  return page.getViewport({scale});
+}
+
+async function ocrPage(pg){
+  if(!window.Tesseract)return '';
+  const viewport=pdfPageCanvas(pg,1.5);
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.ceil(viewport.width); canvas.height=Math.ceil(viewport.height);
+  const ctx=canvas.getContext('2d');
+  await pg.render({canvasContext:ctx,viewport}).promise;
+  try{
+    const result=await Tesseract.recognize(canvas,'eng',{
+      logger:m=>{
+        if(m.status==='recognizing text' && m.progress)
+          $('ls').textContent=`OCR page… ${Math.round(m.progress*100)}%`;
+      }
+    });
+    return norm(result.data.text||'');
+  }catch(e){return '';}
+}
+
+async function readPDF(file){
+  const data=new Uint8Array(await file.arrayBuffer());
+  const pdf=await pdfjsLib.getDocument({data}).promise;
+  const d={name:file.name,pages:pdf.numPages,ocr:0};
+  S.docs.push(d);
+
+  for(let p=1;p<=pdf.numPages;p++){
+    const pg=await pdf.getPage(p);
+    const tc=await pg.getTextContent();
+    let txt=tc.items.map(x=>x.str||'').join(' ');
+    txt=norm(txt);
+
+    // OCR is triggered when the page is image-only or extracted text is suspiciously short.
+    if(txt.length<80){
+      const ocr=await ocrPage(pg);
+      if(ocr.length>txt.length){txt=ocr;d.ocr++;}
+    }
+
+    if(txt) addPage(file.name,p,txt,d.ocr?'PDF text + OCR':'PDF text');
+    $('bar').style.width=(p/pdf.numPages*100)+'%';
+    $('ls').textContent=`Read ${file.name} · page ${p} of ${pdf.numPages}${d.ocr?' · OCR checked':''}`;
+    await new Promise(r=>setTimeout(r,0));
+  }
+}
+
+async function readText(file){
+  const t=norm(await file.text());
+  S.docs.push({name:file.name,pages:1,ocr:0});
+  addPage(file.name,1,t,'text');
+}
+
+$('files').onchange=async e=>{
+  S.docs=[];S.chunks=[];S.pages=[];
+  $('bar').style.width='0%';
+  for(const f of e.target.files){
+    try{
+      if(f.name.toLowerCase().endsWith('.pdf')) await readPDF(f);
+      else await readText(f);
+    }catch(err){
+      $('ls').textContent=`Could not read ${f.name}: ${err.message}`;
+    }
+  }
+  $('bar').style.width='100%';
+  render();
+  try{localStorage.setItem(K,JSON.stringify({docs:S.docs,chunks:S.chunks,pages:S.pages}))}catch(e){}
+};
+
+function toks(q){
+  return q.toLowerCase()
+    .replace(/[^\p{L}\p{N}%₹.-]+/gu,' ')
+    .split(/\s+/).filter(x=>x.length>1);
+}
+
+const aliases={
+  'shg':['shg','self help group','self-help group'],
+  'members':['members','member'],
+  'interest':['interest','rate','roi','charged'],
+  'loan':['loan','credit','credit facility'],
+  'maximum':['maximum','max','up to','limit'],
+  'minimum':['minimum','min'],
+  'rate':['rate','interest']
+};
+
+function expand(q){
+  const base=toks(q), out=new Set(base);
+  for(const t of base) (aliases[t]||[]).forEach(x=>out.add(x));
+  return [...out];
+}
+
+function sentenceHits(text,q){
+  const sentences=text.split(/(?<=[.!?;])\s+/);
+  const qTokens=toks(q);
+  return sentences.map(s=>{
+    const x=s.toLowerCase();
+    let score=0;
+    qTokens.forEach(t=>{if(x.includes(t))score+=3;});
+    if(/₹\s*\d|\d+\s*(lakh|lakhs|crore|%)/i.test(q) &&
+       /₹\s*\d|\d+\s*(lakh|lakhs|crore|%)/i.test(s)) score+=12;
+    return {s,score};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,3);
+}
+
+function retrieve(q){
+  const qt=expand(q), ql=q.toLowerCase();
+  return S.pages.map(p=>{
+    const x=p.text.toLowerCase();
+    let score=0;
+    if(x.includes(ql))score+=80;
+
+    // Exact multi-word fragments are more valuable than isolated common words.
+    const phrases=ql.split(/\s+/).filter(x=>x.length>3);
+    phrases.forEach(t=>{if(x.includes(t))score+=7;});
+
+    qt.forEach(t=>{
+      if(t.length<3)return;
+      if(x.includes(t))score+=4;
+      if(/^\d/.test(t) && x.includes(t))score+=18;
+    });
+
+    if(/maximum|minimum|limit|number|members/i.test(q) && /\b\d+\b/.test(p.text))score+=10;
+    if(/interest|rate|charged|₹|lakh|loan|credit/i.test(q) && (/%|₹|lakh|interest|rate|credit|loan)/i.test(p.text))score+=12;
+
+    const hits=sentenceHits(p.text,q);
+    if(hits[0])score+=hits[0].score;
+
+    return {...p,score,hits};
+  }).filter(p=>p.score>=8).sort((a,b)=>b.score-a.score).slice(0,10);
+}
+
+function extractAnswer(q,hits){
+  const ql=q.toLowerCase();
+  if(!hits.length)return null;
+
+  // For numerical/regulatory questions, prefer the most relevant sentence(s), not the first page chunk.
+  const candidates=[];
+  hits.forEach(p=>p.hits.forEach(h=>candidates.push({...h,doc:p.doc,page:p.page})));
+  candidates.sort((a,b)=>b.score-a.score);
+
+  // SHG member-count question: return the complete qualifying sentence/paragraph.
+  if(/member|members/i.test(ql) && /shg|self\s*help/i.test(ql)){
+    const good=candidates.filter(c=>/member|shg|self\s*help/i.test(c.s));
+    if(good.length)return good.slice(0,2).map(x=>x.s).join(' ');
+  }
+
+  // Interest/rate/loan amount question: return the exact supporting sentence(s).
+  if(/interest|rate|charged|loan|credit/i.test(ql)){
+    const good=candidates.filter(c=>/interest|rate|charged|loan|credit|₹|%|lakh/i.test(c.s));
+    if(good.length)return good.slice(0,3).map(x=>x.s).join(' ');
+  }
+
+  return candidates[0]?.s||null;
+}
+
+async function gemini(q,h){
+  const key=localStorage.getItem(K+'key');
+  if(!key)return null;
+  const ev=h.map((x,i)=>`[${i+1}] ${x.doc}, page ${x.page}: ${x.text}`).join('\n');
+  const prompt=`You are a strict regulatory document assistant.
+Answer ONLY from the supplied evidence. Do not use outside knowledge.
+If the evidence does not establish the answer, say exactly "Not found in supplied material."
+Preserve every qualifier, exception, threshold, amount, rate and date.
+Do not merge statements from unrelated pages.
+For a numeric question, state the number/rate first and then the condition.
+QUESTION: ${q}
+EVIDENCE:
+${ev}`;
+  try{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(key),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.05,maxOutputTokens:700}})
+    });
+    const j=await r.json();
+    return j?.candidates?.[0]?.content?.parts?.map(x=>x.text||'').join('')||null;
+  }catch(e){return null}
+}
+
+$('ask').onclick=async()=>{
+  const q=$('q').value.trim();
+  if(!q)return;
+  if(!S.pages.length){
+    $('ans').textContent='No documents are indexed. Add documents first.';
+    return;
+  }
+
+  $('status').textContent='Reading indexed pages and ranking exact supporting evidence…';
+  const h=retrieve(q);
+
+  if(!h.length){
+    $('ans').textContent='Not found in supplied material.';
+    $('src').innerHTML='';
+    $('ev').innerHTML='';
+    $('status').textContent='Auto: no sufficiently relevant evidence found.';
+    return;
+  }
+
+  // Local deterministic answer first; Gemini only synthesises already-retrieved evidence.
+  let a=extractAnswer(q,h);
+  if(!a)a=await gemini(q,h);
+  if(!a)a='Not found in supplied material.';
+
+  $('ans').textContent=a;
+
+  const best=h[0];
+  $('src').innerHTML=`<div class="box"><div class="label">SOURCE</div><b>${esc(best.doc)} · Page ${best.page}</b><div class="small">Reading method: ${esc(best.method)}</div></div>`;
+
+  $('ev').innerHTML=`<div class="box"><div class="label">EVIDENCE USED</div>${
+    h.slice(0,5).map((x,i)=>`<p><b>${i+1}. ${esc(x.doc)} — Page ${x.page}</b><br>${esc(x.hits?.[0]?.s||x.text)}</p>`).join('')
+  }</div>`;
+
+  $('status').textContent=`Auto: ${h.length} relevant page(s) reviewed; strongest exact evidence selected.`;
+};
+
+$('clear').onclick=()=>{
+  $('q').value='';$('ans').textContent='No question answered yet.';
+  $('src').innerHTML='';$('ev').innerHTML='';
+};
+
+$('clearLib').onclick=()=>{
+  S.docs=[];S.chunks=[];S.pages=[];render();localStorage.removeItem(K);
+};
+
+$('save').onclick=()=>{
+  localStorage.setItem(K+'key',$('key').value.trim());
+  alert('Settings saved.');
+};
+$('reset').onclick=()=>{
+  localStorage.removeItem(K+'key');$('key').value='';
+};
+
+$('speak').onclick=()=>{
+  const R=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!R)return alert('Speech recognition is not supported here.');
+  const r=new R;r.lang='en-IN';
+  r.onresult=e=>$('q').value=e.results[0][0].transcript;r.start();
+};
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  ['ask','lib','set'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.t));
+});
+
+try{
+  const x=JSON.parse(localStorage.getItem(K)||'null');
+  if(x){S.docs=x.docs||[];S.chunks=x.chunks||[];S.pages=x.pages||[];render();}
+}catch(e){}
+$('key').value=localStorage.getItem(K+'key')||'';
+</script></body></html>
