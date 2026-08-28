@@ -1,5 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>RBI Regulatory Assistant v3.29</title><style>:root{--b:#1658a8;--ink:#18243a;--mut:#586a84;--line:#d8e4f3;--soft:#f1f6fd}*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}header{background:linear-gradient(135deg,#174f98,#2264b7);color:#fff;padding:20px 18px 16px;position:sticky;top:0;z-index:5;box-shadow:0 5px 18px #173e7222}.brand{display:flex;gap:15px;align-items:center}.logo{width:72px;height:72px;border-radius:22px;background:#fff;color:var(--b);display:grid;place-items:center;font-size:52px;font-weight:900}.h1{font-size:27px;font-weight:900}.sub{font-size:17px;font-weight:750;opacity:.9}.tabs{display:flex;gap:10px;margin-top:18px}.tab{flex:1;border:2px solid #ffffff55;background:#ffffff10;color:#fff;border-radius:22px;padding:13px 10px;font-size:17px;font-weight:850}.tab.active{background:#fff;color:var(--b);border-color:#fff}main{max-width:900px;margin:auto;padding:14px 12px 50px}.card{background:#fff;border:2px solid var(--line);border-radius:25px;padding:20px;margin:14px 0;box-shadow:0 5px 18px #254a7810}h2{font-size:31px;margin:2px 0 18px}.notice{background:var(--soft);border-radius:22px;padding:17px;color:var(--mut);font-weight:750;line-height:1.55}textarea{width:100%;min-height:145px;margin-top:14px;border:2px solid var(--line);border-radius:22px;padding:18px;font-size:18px;outline:0}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}button,.filebtn{border:0;border-radius:18px;padding:13px 18px;font-size:17px;font-weight:850;background:#eef3f9;color:#26344a}.primary,.filebtn{background:var(--b);color:#fff}.green{background:#e4f6ef;color:#087b52}.status{margin-top:13px;color:#087b52;font-weight:800}.progress{height:10px;background:#e8eef7;border-radius:99px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:var(--b)}.label{color:var(--b);font-weight:900;letter-spacing:1px;font-size:20px}.answer{font-size:20px;line-height:1.55;font-weight:650;white-space:pre-wrap;margin-top:8px}.box{border:2px solid var(--line);border-radius:22px;padding:17px;margin-top:14px}.small{font-size:14px;color:var(--mut)}.doc{padding:13px 0;border-bottom:1px solid #e6edf6;font-weight:800}.hidden{display:none!important}input[type=file]{display:none}input[type=password]{width:100%;padding:13px;border:2px solid var(--line);border-radius:15px;font-size:16px}.setting{display:block;font-weight:800;margin:16px 0 7px}.check{margin-top:14px;font-weight:750}footer{text-align:center;color:#72829a;font-size:13px;padding:20px}@media(max-width:600px){.h1{font-size:25px}.sub{font-size:16px}.logo{width:68px;height:68px;font-size:48px}.tab{font-size:16px;padding:12px 7px}.card{padding:17px}}
-</style></head><body><header><div class="brand"><div class="logo">R</div><div><div class="h1">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.29</div></div></div><div class="tabs" id="mainTabs"><button type="button" class="tab active" data-t="ask" onclick="showMainPanel('ask')">Ask RBI</button><button type="button" class="tab" data-t="lib" onclick="showMainPanel('lib')">Knowledge Library</button><button type="button" class="tab" data-t="set" onclick="showMainPanel('set')">Settings</button></div></header><main><section id="askPanel"><div class="card"><div class="notice"><b>Document Reading Engine v3.29</b><br>Read first → extract/OCR every page → index page-by-page → rank exact evidence → answer. Document name and page number stay attached to every evidence block. Scanned pages are OCR-checked. Unsupported facts are not guessed.</div><textarea id="q" placeholder="Ask from the loaded documents, e.g. What is the maximum number of members in an SHG?"></textarea><div class="row"><button class="primary" id="askBtn">Ask RBI</button><button class="green" id="speak">🎙️ Speak</button><button id="clear">Clear</button></div><div class="status" id="status">Ready. Load documents in Knowledge Library first.</div></div><div class="card"><h2>Answer</h2><div class="notice">Smart answer: direct answer first; essential condition second; exact source/page when established.</div><div style="margin-top:18px"><div class="label">ANSWER</div><div class="answer" id="ans">No question answered yet.</div><div id="src"></div><div id="ev"></div></div></div></section><section id="lib" class="hidden"><div class="card"><h2>Knowledge Library</h2><div class="notice"><b>First read → then index → then answer.</b><br>PDFs are extracted page-by-page. Text/CSV/JSON/Markdown files are indexed as documents. All retrieval is local except optional Gemini synthesis.</div><div class="row"><label class="filebtn">＋ Add documents<input id="files" type="file" multiple accept=".pdf,.txt,.md,.csv,.json"></label><button id="clearLib">Clear Library</button></div><div class="progress"><div class="bar" id="bar"></div></div><div class="status" id="ls">No documents loaded.</div><div id="docs"></div></div></section><section id="set" class="hidden"><div class="card"><h2>Settings</h2><label class="setting">Gemini API key (optional)</label><input id="key" type="password" placeholder="Stored only in this browser"><div class="small">Without a key, the evidence retrieval engine still works. With a key, Gemini may synthesise an answer strictly from retrieved evidence.</div><div class="check"><label><input id="strict" type="checkbox" checked> Strict evidence lock</label></div><div class="row"><button class="primary" id="save">Save settings</button><button id="reset">Reset</button></div></div><div class="card"><h3>v3.29 reading safeguards</h3><ol style="line-height:1.7"><li>Every PDF page is extracted separately.</li><li>Page number is stored with each text block.</li><li>PDF line-break and spacing noise is normalised without changing wording.</li><li>Search ranks exact phrases, words and numeric matches.</li><li>Top evidence is displayed for checking.</li><li>If no supporting evidence exists, the app says “Not found in supplied material.”</li></ol></div></section><footer>RBI Regulatory Assistant · v3.29 · Evidence-first document reader</footer></main><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>RBI Regulatory Assistant v3.30</title><style>:root{--b:#1658a8;--ink:#18243a;--mut:#586a84;--line:#d8e4f3;--soft:#f1f6fd}*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}header{background:linear-gradient(135deg,#174f98,#2264b7);color:#fff;padding:20px 18px 16px;position:sticky;top:0;z-index:5;box-shadow:0 5px 18px #173e7222}.brand{display:flex;gap:15px;align-items:center}.logo{width:72px;height:72px;border-radius:22px;background:#fff;color:var(--b);display:grid;place-items:center;font-size:52px;font-weight:900}.h1{font-size:27px;font-weight:900}.sub{font-size:17px;font-weight:750;opacity:.9}.tabs{display:flex;gap:10px;margin-top:18px}.tab{flex:1;border:2px solid #ffffff55;background:#ffffff10;color:#fff;border-radius:22px;padding:13px 10px;font-size:17px;font-weight:850}.tab.active{background:#fff;color:var(--b);border-color:#fff}main{max-width:900px;margin:auto;padding:14px 12px 50px}.card{background:#fff;border:2px solid var(--line);border-radius:25px;padding:20px;margin:14px 0;box-shadow:0 5px 18px #254a7810}h2{font-size:31px;margin:2px 0 18px}.notice{background:var(--soft);border-radius:22px;padding:17px;color:var(--mut);font-weight:750;line-height:1.55}textarea{width:100%;min-height:145px;margin-top:14px;border:2px solid var(--line);border-radius:22px;padding:18px;font-size:18px;outline:0}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}button,.filebtn{border:0;border-radius:18px;padding:13px 18px;font-size:17px;font-weight:850;background:#eef3f9;color:#26344a}.primary,.filebtn{background:var(--b);color:#fff}.green{background:#e4f6ef;color:#087b52}.status{margin-top:13px;color:#087b52;font-weight:800}.progress{height:10px;background:#e8eef7;border-radius:99px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:var(--b)}.label{color:var(--b);font-weight:900;letter-spacing:1px;font-size:20px}.answer{font-size:20px;line-height:1.55;font-weight:650;white-space:pre-wrap;margin-top:8px}.box{border:2px solid var(--line);border-radius:22px;padding:17px;margin-top:14px}.small{font-size:14px;color:var(--mut)}.doc{padding:13px 0;border-bottom:1px solid #e6edf6;font-weight:800}.hidden{display:none!important}input[type=file]{display:none}input[type=password]{width:100%;padding:13px;border:2px solid var(--line);border-radius:15px;font-size:16px}.setting{display:block;font-weight:800;margin:16px 0 7px}.check{margin-top:14px;font-weight:750}footer{text-align:center;color:#72829a;font-size:13px;padding:20px}@media(max-width:600px){.h1{font-size:25px}.sub{font-size:16px}.logo{width:68px;height:68px;font-size:48px}.tab{font-size:16px;padding:12px 7px}.card{padding:17px}}
+</style></head><body><header><div class="brand"><div class="logo">R</div><div><div class="h1">RBI Regulatory Assistant</div><div class="sub">Personal closed-source regulatory assistant · v3.30</div></div></div><div class="tabs" id="mainTabs"><button type="button" class="tab active" data-t="ask" onclick="showMainPanel('ask')">Ask RBI</button><button type="button" class="tab" data-t="lib" onclick="showMainPanel('lib')">Knowledge Library</button><button type="button" class="tab" data-t="set" onclick="showMainPanel('set')">Settings</button></div></header><main><section id="askPanel"><div class="card"><div class="notice"><b>Document Reading Engine v3.30</b><br>Read first → extract/OCR every page → index page-by-page → rank exact evidence → answer. Document name and page number stay attached to every evidence block. Scanned pages are OCR-checked. Unsupported facts are not guessed.</div><textarea id="q" placeholder="Ask from the loaded documents, e.g. What is the maximum number of members in an SHG?"></textarea><div class="row"><button class="primary" id="askBtn">Ask RBI</button><button class="green" id="speak" type="button">🎙️ Speak</button><button id="clear">Clear</button></div><div class="status" id="status">Ready. Load documents in Knowledge Library first.</div></div><div class="card"><h2>Answer</h2><div class="notice">Smart answer: direct answer first; essential condition second; exact source/page when established.</div><div style="margin-top:18px"><div class="label">ANSWER</div><div class="answer" id="ans">No question answered yet.</div><div id="src"></div><div id="ev"></div></div></div></section><section id="lib" class="hidden"><div class="card"><h2>Knowledge Library</h2><div class="notice"><b>First read → then index → then answer.</b><br>PDFs are extracted page-by-page. Text/CSV/JSON/Markdown files are indexed as documents. The library and saved settings are restored on this device when the app is reopened or updated. Add documents appends to the existing library; it does not erase it. All retrieval is local except optional Gemini synthesis.</div><div class="row"><label class="filebtn">＋ Add documents<input id="files" type="file" multiple accept=".pdf,.txt,.md,.csv,.json"></label><button id="clearLib">Clear Library</button></div><div class="progress"><div class="bar" id="bar"></div></div><div class="status" id="ls">No documents loaded.</div><div id="docs"></div></div></section><section id="set" class="hidden"><div class="card"><h2>Settings</h2><label class="setting">Gemini API key (optional)</label><input id="key" type="password" placeholder="Stored only in this browser"><div class="small">Without a key, the evidence retrieval engine still works. With a key, Gemini may synthesise an answer strictly from retrieved evidence.</div><div class="check"><label><input id="strict" type="checkbox" checked> Strict evidence lock</label></div><div class="row"><button class="primary" id="save">Save settings</button><button id="reset">Reset</button></div></div><div class="card"><h3>v3.30 reading safeguards</h3><ol style="line-height:1.7"><li>Every PDF page is extracted separately.</li><li>Page number is stored with each text block.</li><li>PDF line-break and spacing noise is normalised without changing wording.</li><li>Search ranks exact phrases, words and numeric matches.</li><li>Top evidence is displayed for checking.</li><li>If no supporting evidence exists, the app says “Not found in supplied material.”</li></ol></div></section><footer>RBI Regulatory Assistant · v3.30 · Evidence-first document reader</footer></main><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script>
 /* Main navigation is deliberately independent of the document-reading module.
    This keeps the three main buttons functional even if an external PDF/OCR module fails to load. */
 function showMainPanel(name){
@@ -20,13 +20,15 @@ window.addEventListener("DOMContentLoaded",function(){
   showMainPanel("ask");
 });
 </script><script type="module">
-import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
-pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
-
-window.pdfjsLib=pdfjsLib;
+let pdfjsLib=null;
+try {
+  pdfjsLib=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+  window.pdfReady=true;
+} catch(e) { window.pdfReady=false; console.warn('PDF engine unavailable',e); }
 const S={docs:[],chunks:[],pages:[]};
 const $=x=>document.getElementById(x);
-const K='rbi329';
+const K='rbi330';
 
 function norm(t){
   return String(t||'')
@@ -82,6 +84,7 @@ async function ocrPage(pg){
 }
 
 async function readPDF(file){
+  if(!pdfjsLib) throw new Error('PDF engine could not be loaded. Please open the app from its HTTPS web address.');
   const data=new Uint8Array(await file.arrayBuffer());
   const pdf=await pdfjsLib.getDocument({data}).promise;
   const d={name:file.name,pages:pdf.numPages,ocr:0};
@@ -112,10 +115,16 @@ async function readText(file){
   addPage(file.name,1,t,'text');
 }
 
+async function persistLibrary(){
+  const payload={docs:S.docs,chunks:S.chunks,pages:S.pages,savedAt:new Date().toISOString()};
+  try{localStorage.setItem(K,JSON.stringify(payload)); localStorage.setItem(K+'key',$('key').value.trim());}
+  catch(e){ $('ls').textContent='Library is loaded for this session, but browser storage is full; keep this app tab open.'; }
+}
+
 $('files').onchange=async e=>{
-  S.docs=[];S.chunks=[];S.pages=[];
-  $('bar').style.width='0%';
+  // Do NOT wipe an existing library when adding another document.
   for(const f of e.target.files){
+  $('bar').style.width='0%';
     try{
       if(f.name.toLowerCase().endsWith('.pdf')) await readPDF(f);
       else await readText(f);
@@ -125,7 +134,8 @@ $('files').onchange=async e=>{
   }
   $('bar').style.width='100%';
   render();
-  try{localStorage.setItem(K,JSON.stringify({docs:S.docs,chunks:S.chunks,pages:S.pages}))}catch(e){}
+  await persistLibrary();
+  $('files').value='';
 };
 
 function toks(q){
@@ -279,12 +289,12 @@ $('clear').onclick=()=>{
 };
 
 $('clearLib').onclick=()=>{
-  S.docs=[];S.chunks=[];S.pages=[];render();localStorage.removeItem(K);
+  S.docs=[];S.chunks=[];S.pages=[];render();localStorage.removeItem(K);localStorage.removeItem(K+'key');
 };
 
 $('save').onclick=()=>{
   localStorage.setItem(K+'key',$('key').value.trim());
-  alert('Settings saved.');
+  alert('Settings saved and will be retained on this device.');
 };
 $('reset').onclick=()=>{
   localStorage.removeItem(K+'key');$('key').value='';
@@ -292,14 +302,27 @@ $('reset').onclick=()=>{
 
 $('speak').onclick=()=>{
   const R=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!R)return alert('Speech recognition is not supported here.');
-  const r=new R;r.lang='en-IN';
-  r.onresult=e=>$('q').value=e.results[0][0].transcript;r.start();
+  if(!R){
+    $('status').textContent='Voice input is unavailable in this browser/file view. Open the app from its HTTPS web address and allow microphone access.';
+    return;
+  }
+  const r=new R(); r.lang='en-IN'; r.interimResults=false; r.continuous=false;
+  $('speak').textContent='🎙️ Listening…'; $('status').textContent='Listening… speak your question.';
+  r.onresult=e=>{ $('q').value=e.results[0][0].transcript; $('status').textContent='Voice captured. Tap Ask RBI.'; };
+  r.onerror=e=>{ $('status').textContent='Microphone error: '+(e.error||'permission denied')+'. Allow microphone access and try again.'; };
+  r.onend=()=>{ $('speak').textContent='🎙️ Speak'; };
+  try{r.start();}catch(e){$('status').textContent='Could not start microphone. Tap Speak again and allow access.';}
 };
 
-try{
-  const x=JSON.parse(localStorage.getItem(K)||'null');
-  if(x){S.docs=x.docs||[];S.chunks=x.chunks||[];S.pages=x.pages||[];render();}
-}catch(e){}
-$('key').value=localStorage.getItem(K+'key')||'';
+function restoreSavedData(){
+  const candidates=[K,'rbi329','rbi328','rbi327','rbi326','rbi325','rbi323','rbi322'];
+  for(const k of candidates){
+    try{const x=JSON.parse(localStorage.getItem(k)||'null'); if(x?.pages?.length){S.docs=x.docs||[];S.chunks=x.chunks||[];S.pages=x.pages||[]; if(k!==K) localStorage.setItem(K,JSON.stringify(x)); break;}}catch(e){}
+  }
+  const keyCandidates=[K+'key','rbi329key','rbi328key','rbi327key','rbi326key','rbi325key','rbi323key','rbi322key'];
+  for(const k of keyCandidates){const v=localStorage.getItem(k); if(v){$('key').value=v; if(k!==K+'key')localStorage.setItem(K+'key',v); break;}}
+  render();
+  if(S.pages.length) $('status').textContent='Restored saved Knowledge Library. No re-upload required.';
+}
+restoreSavedData();
 </script></body></html>
