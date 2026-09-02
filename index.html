@@ -472,6 +472,75 @@ ${ev}`;
   }catch(e){return null}
 }
 
+// ~225k tokens' worth of characters — comfortably inside Gemini 2.0 Flash's 1M-token context window with
+// headroom for the prompt and response, while still covering large multi-document libraries in one request.
+const FULL_CORPUS_CHAR_BUDGET=900000;
+
+// Assembles the ENTIRE indexed library — not just keyword-matched pages — so Gemini can read and cross-reference
+// every document before answering. This is what makes the assistant "intelligent" rather than keyword-limited:
+// a question whose evidence spans two documents, or uses wording the keyword scorer wouldn't rank highly, still
+// gets a real chance at being answered correctly.
+function buildFullCorpusText(){
+  let used=0, out=[];
+  for(const p of S.pages){
+    const chunk=`[${p.doc} — Page ${p.page}]\n${p.text}\n`;
+    if(used+chunk.length>FULL_CORPUS_CHAR_BUDGET) break;
+    out.push(chunk); used+=chunk.length;
+  }
+  return {text:out.join('\n'), truncated: used>=FULL_CORPUS_CHAR_BUDGET && out.length<S.pages.length};
+}
+
+// Parses the structured ANSWER / SOURCE_DOC / SOURCE_PAGE reply format so Source/Evidence can stay accurate
+// even for a full-library answer. Falls back to treating the whole reply as unstructured answer text if Gemini
+// doesn't follow the format exactly (e.g. a "Not found" reply, which has no source lines).
+function parseGeminiStructured(raw){
+  const am=raw.match(/ANSWER:\s*([\s\S]*?)(?:\n\s*SOURCE_DOC:|$)/i);
+  const dm=raw.match(/SOURCE_DOC:\s*(.+)/i);
+  const pm=raw.match(/SOURCE_PAGE:\s*(\d+)/i);
+  const text=(am?am[1]:raw).trim();
+  if(!text)return null;
+  if(dm && pm) return {text, used:[{doc:dm[1].trim(), page:parseInt(pm[1],10), s:text}]};
+  return {text, used:null};
+}
+
+async function geminiFull(q,detail){
+  const key=loadKey();
+  if(!key || !S.pages.length)return null;
+  const {text:corpus, truncated}=buildFullCorpusText();
+  if(!corpus)return null;
+
+  const lengthRule=detail
+    ? 'The question asks for detail/explanation, so give a complete answer: the direct fact first, then every relevant condition, exception, threshold and date.'
+    : 'Be to the point: answer in ONE short sentence with only the key fact (number/rate/rule) and its single most essential condition. Do not list extra exceptions, background or elaboration unless the question explicitly asks for them.';
+
+  const prompt=`You are a strict regulatory/financial document assistant. You have the entire indexed library of
+documents below — read across ALL of them and cross-reference where needed before answering one question.
+Answer ONLY from the material given. Do not use outside knowledge, and do not guess at figures.
+Preserve every qualifier, exception, threshold, amount, rate and date that you include in the answer.
+${lengthRule}
+If the material does not establish the answer, respond with EXACTLY:
+ANSWER: Not found in supplied material.
+Otherwise respond in EXACTLY this format and nothing else — no extra commentary before or after:
+ANSWER: <the answer text>
+SOURCE_DOC: <the exact document name as given in the brackets below>
+SOURCE_PAGE: <the page number>
+${truncated?'NOTE: this library was too large to send in full; only part of it is included below. If you cannot establish the answer from what is given, say "Not found" rather than guessing.\n':''}
+QUESTION: ${q}
+LIBRARY:
+${corpus}`;
+
+  try{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(key),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.05,maxOutputTokens:detail?900:300}})
+    });
+    const j=await r.json();
+    const raw=j?.candidates?.[0]?.content?.parts?.map(x=>x.text||'').join('')||'';
+    if(!raw)return null;
+    return parseGeminiStructured(raw);
+  }catch(e){return null}
+}
+
 let lastQ='',lastHits=[];
 
 async function runAsk(q,detail){
@@ -481,48 +550,72 @@ async function runAsk(q,detail){
     return;
   }
 
-  $('status').textContent='Reading indexed pages and ranking exact supporting evidence…';
-  const h=retrieve(q);
-  lastQ=q; lastHits=h;
+  lastQ=q;
+  const key=loadKey();
+  let answerText=null, usedSources=null, mode=null;
 
-  if(!h.length){
-    $('ans').textContent='Not found in supplied material.';
-    $('src').innerHTML='';
-    $('ev').innerHTML='';
-    $('status').textContent='Auto: no sufficiently relevant evidence found.';
-    return;
+  // PRIMARY PATH when a Gemini key is configured: read the ENTIRE indexed library, not just keyword-matched
+  // pages, so the assistant can actually reason across documents instead of being limited to whatever the
+  // local keyword scorer happened to rank highly.
+  if(key){
+    $('status').textContent=`Reading the entire indexed library (${S.pages.length} page(s) across ${S.docs.length} document(s))…`;
+    const full=await geminiFull(q,detail);
+    if(full && full.text && !/^not found/i.test(full.text)){
+      answerText=full.text; usedSources=full.used; mode='gemini-full';
+    }
   }
 
-  // Local deterministic answer first; Gemini only synthesises already-retrieved evidence.
-  const found=extractAnswer(q,h,detail);
-  let answerText, usedSources=null;
-  if(found){ answerText=found.text; usedSources=found.used; }
-  else { answerText=await gemini(q,h,detail); }
+  // Local keyword-narrowed retrieval — the primary path when no key is set, and a safety-net fallback if the
+  // full-corpus reading above found nothing (or a key isn't configured at all).
+  const h=retrieve(q);
+  lastHits=h;
+  if(!answerText){
+    if(!h.length){
+      $('ans').textContent='Not found in supplied material.';
+      $('src').innerHTML='';$('ev').innerHTML='';
+      $('status').textContent='Auto: no sufficiently relevant evidence found.';
+      return;
+    }
+    $('status').textContent='Reading indexed pages and ranking exact supporting evidence…';
+    const found=extractAnswer(q,h,detail);
+    if(found){ answerText=found.text; usedSources=found.used; mode='local'; }
+    else { answerText=await gemini(q,h,detail); mode='gemini-narrow'; }
+  }
   if(!answerText)answerText='Not found in supplied material.';
 
   $('ans').textContent=answerText;
   if($('autoSpeak').checked)speakText(answerText);
 
-  // Source/Evidence must reflect the sentence(s) that actually produced the answer — not just "the top page in
-  // general" — otherwise the audit trail can show unrelated evidence next to a correct answer, which is worse
-  // than no evidence at all for a regulatory tool. Only falls back to the general top-pages view when the
-  // answer came from Gemini synthesis, which draws on multiple pages without a single-sentence attribution.
+  // Source/Evidence must reflect what actually backs the answer, whichever path produced it — otherwise the
+  // audit trail can show unrelated evidence next to a correct answer, which is worse than no evidence at all
+  // for a regulatory tool.
   const best = (usedSources && usedSources.length)
-    ? (h.find(p=>p.doc===usedSources[0].doc && p.page===usedSources[0].page) || h[0])
+    ? (S.pages.find(p=>p.doc===usedSources[0].doc && p.page===usedSources[0].page) || h.find(p=>p.doc===usedSources[0].doc && p.page===usedSources[0].page))
     : h[0];
-  $('src').innerHTML=`<div class="box"><div class="label">SOURCE</div><b>${esc(best.doc)} · Page ${best.page}</b><div class="small">Reading method: ${esc(best.method)}</div></div>`;
+
+  if(best){
+    $('src').innerHTML=`<div class="box"><div class="label">SOURCE</div><b>${esc(best.doc)} · Page ${best.page}</b><div class="small">Reading method: ${esc(best.method||'AI-assisted (Gemini, full library)')}</div></div>`;
+  }else{
+    $('src').innerHTML='';
+  }
 
   if(usedSources && usedSources.length){
     $('ev').innerHTML=`<div class="box"><div class="label">EVIDENCE USED</div>${
       usedSources.map((x,i)=>`<p><b>${i+1}. ${esc(x.doc)} — Page ${x.page}</b><br>${esc(x.s)}</p>`).join('')
     }</div>`;
-  }else{
-    $('ev').innerHTML=`<div class="box"><div class="label">EVIDENCE USED</div><div class="small">Answer synthesised by Gemini from the pages below.</div>${
+  }else if(h.length){
+    $('ev').innerHTML=`<div class="box"><div class="label">EVIDENCE USED</div><div class="small">Answer synthesised by Gemini${mode==='gemini-full'?' from the entire indexed library':' from the pages below'}.</div>${
       h.slice(0,5).map((x,i)=>`<p><b>${i+1}. ${esc(x.doc)} — Page ${x.page}</b><br>${esc(x.hits?.[0]?.s||x.text)}</p>`).join('')
     }</div>`;
+  }else{
+    $('ev').innerHTML=`<div class="box"><div class="label">EVIDENCE USED</div><div class="small">Answer synthesised by Gemini from the entire indexed library.</div></div>`;
   }
 
-  $('status').textContent=`Auto: ${h.length} relevant page(s) reviewed; strongest exact evidence selected.`;
+  $('status').textContent = mode==='gemini-full'
+    ? `Gemini reviewed the entire library — ${S.pages.length} page(s) across ${S.docs.length} document(s).`
+    : mode==='gemini-narrow'
+    ? `Auto: ${h.length} relevant page(s) reviewed; Gemini synthesis from that subset.`
+    : `Auto: ${h.length} relevant page(s) reviewed; strongest exact evidence selected.`;
 }
 
 $('askBtn').onclick=()=>runAsk($('q').value.trim(),wantsDetail($('q').value));
