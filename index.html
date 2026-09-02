@@ -534,6 +534,17 @@ $('reset').onclick=()=>{localStorage.removeItem(PERM_KEY);$('key').value='';upda
 let voiceRecorder=null,voiceChunks=[],voiceStream=null,voiceSeconds=0,voiceTimer=null;
 function stopVoice(){if(voiceRecorder&&voiceRecorder.state!=='inactive')voiceRecorder.stop();if(voiceTimer){clearInterval(voiceTimer);voiceTimer=null;}}
 function blobToBase64(blob){return new Promise((res,rej)=>{const f=new FileReader();f.onload=()=>res(String(f.result).split(',')[1]||'');f.onerror=rej;f.readAsDataURL(blob);});}
+
+// Safety-net correction for common domain-term mishearings from either transcription path — "SHG" (Self Help
+// Group) is the single most frequent word in this app's documents and is regularly misheard as "SG"/"as H G"
+// by speech recognizers that don't know the term.
+function correctVoiceArtifacts(t){
+  return String(t||'')
+    .replace(/^oman\b/i,'How many') // common mishearing of "How many" as "Oman" at the start of a question
+    .replace(/\bas\s*h\s*g\b/gi,'SHG')
+    .replace(/\bs\s*g\b/gi,'SHG')
+    .replace(/\bday\s*[- ]?\s*n\s*r\s*l\s*m\b/gi,'DAY-NRLM');
+}
 async function transcribeAudio(blob){
   const key=loadKey();
   if(!key){$('status').textContent='Voice recorded. Save the Gemini key in Settings to transcribe it.';return;}
@@ -544,14 +555,16 @@ async function transcribeAudio(blob){
     const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(key),{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({contents:[{parts:[
-        {text:'Transcribe this recording exactly. Return only the spoken words. Do not answer the question.'},
+        {text:'Transcribe this recording exactly as spoken. Return only the spoken words, nothing else — do not answer the question. '+
+          'The speaker is asking about Indian banking/regulatory topics (RBI, DAY-NRLM, SHG — Self Help Groups, NPA, MSME, credit, loans, interest rates, tenure, corpus). '+
+          'If a word is ambiguous, prefer these domain terms over similar-sounding ordinary words (e.g. "SHG" not "SG" or "as H G"; "NRLM" not "N R L M" spelled oddly; "maximum"/"minimum" not "max imum").'},
         {inline_data:{mime_type:mime,data}}
       ]}],generationConfig:{temperature:0,maxOutputTokens:300}})
     });
     const j=await r.json();if(!r.ok)throw Error(j?.error?.message||('HTTP '+r.status));
     const t=j?.candidates?.[0]?.content?.parts?.map(x=>x.text||'').join('').trim();
     if(!t)throw Error('No speech detected');
-    $('q').value=t;$('status').textContent='Voice captured. Tap Ask RBI.';
+    $('q').value=correctVoiceArtifacts(t);$('status').textContent='Voice captured. Tap Ask RBI.';
   }catch(e){$('status').textContent='Voice transcription failed: '+(e.message||e);}
   finally{$('speak').disabled=false;$('speak').textContent='🎙️ Speak';updateDiagnostics();}
 }
@@ -577,12 +590,16 @@ async function startRecorder(){
 }
 $('speak').onclick=async()=>{
   if($('speak').textContent.includes('Stop')){stopVoice();return;}
+  // Gemini transcription is far more reliable for domain terms (SHG, NRLM, DAY-NRLM, RBI, tenure, etc.) than the
+  // phone's built-in speech recognizer, which regularly mishears them ("SHG" → "SG", "How many" → "Oman", etc.).
+  // Use it whenever a key is saved; only fall back to the on-device recognizer if no key is configured.
+  if(loadKey()){ await startRecorder(); return; }
   const R=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(R){
     try{
       const r=new R();r.lang='en-IN';r.interimResults=false;r.continuous=false;
       $('speak').textContent='🎙️ Listening…';
-      r.onresult=e=>{$('q').value=(e.results?.[0]?.[0]?.transcript||'').trim();};
+      r.onresult=e=>{$('q').value=correctVoiceArtifacts((e.results?.[0]?.[0]?.transcript||'').trim());};
       r.onerror=async e=>{if(['not-allowed','service-not-allowed','audio-capture','network'].includes(e.error))await startRecorder();else $('status').textContent='Voice error: '+e.error;};
       r.onend=()=>{if(!$('speak').textContent.includes('Stop'))$('speak').textContent='🎙️ Speak';};
       r.start();return;
