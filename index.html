@@ -271,10 +271,14 @@ function retrieve(q){
   }).filter(p=>p.score>=8).sort((a,b)=>b.score-a.score).slice(0,10);
 }
 
-// True when text has a number within ~25 characters of the given word (e.g. "not exceeding 20 members" / "members shall not exceed 20").
+// True when a number sits genuinely close to the given word — e.g. "not exceeding 20 members" / "members shall not exceed 20" —
+// rather than just anywhere in the same long sentence (which previously let an unrelated ₹ loan amount masquerade as a group-size figure).
 function nearNumber(text,word){
-  const re=new RegExp('\\b\\d{1,4}\\b[^.]{0,25}\\b'+word+'\\b|\\b'+word+'\\b[^.]{0,25}\\b\\d{1,4}\\b','i');
-  return re.test(text);
+  // Number (optionally a range) directly on the word: "20 members", "10 to 20 members", "not more than 20 members".
+  const before=new RegExp('\\b\\d{1,4}\\b(?:\\s*(?:-|to|–)\\s*\\d{1,4}\\b)?\\s*(?:\\w+\\s+){0,1}\\b'+word+'\\b','i');
+  // Word leading into the number: "members shall not exceed 20", "members of the SHG shall not exceed 20".
+  const after=new RegExp('\\b'+word+'\\b\\s*(?:\\w+\\s+){0,6}\\b\\d{1,4}\\b','i');
+  return before.test(text)||after.test(text);
 }
 
 // Detects "X to Y members" / "X-20 members" style range statements — the upper number is the effective maximum,
