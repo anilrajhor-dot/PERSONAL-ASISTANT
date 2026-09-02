@@ -350,13 +350,23 @@ function wantsDetail(q){
   return /\b(detail|details|explain|elaborat|describe|full|complete|in depth|thorough|steps|step by step|why|how does|breakdown|list all|all conditions|everything)\b/i.test(q);
 }
 
+// A short line starting with a section-number prefix ("7.3 Lending to...") and containing no verb or regulatory
+// wording is very likely a mis-extracted heading — often with the NEXT section's stray number glued onto the end
+// by the PDF text layer (e.g. "...individual members 7.") — not an actual sentence stating a real figure.
+function looksLikeHeading(s){
+  const words=s.trim().split(/\s+/);
+  const numberedHeading=/^\d+(\.\d+){0,3}\s+[A-Z]/.test(s.trim());
+  const hasVerb=/\b(shall|should|must|is|are|was|were|will|may|can|could|consist|consists|exceed|exceeding|not|minimum|maximum|limit|limits|permitted|allowed|require|requires|required)\b/i.test(s);
+  return numberedHeading && words.length<=12 && !hasVerb;
+}
+
 function extractAnswer(q,hits,detail){
   const ql=q.toLowerCase();
   if(!hits.length)return null;
 
   // For numerical/regulatory questions, prefer the most relevant sentence(s), not the first page chunk.
   const candidates=[];
-  hits.forEach(p=>p.hits.forEach(h=>candidates.push({...h,doc:p.doc,page:p.page})));
+  hits.forEach(p=>p.hits.forEach(h=>{ if(!looksLikeHeading(h.s)) candidates.push({...h,doc:p.doc,page:p.page}); }));
   candidates.sort((a,b)=>b.score-a.score);
 
   const cap=detail?3:1; // Concise by default: one sentence. Full detail only when asked.
