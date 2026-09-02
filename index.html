@@ -259,11 +259,12 @@ function retrieve(q){
 
     if(/maximum|minimum|limit|number|members/i.test(q) && /\b\d+\b/.test(p.text))score+=10;
     if(/interest|rate|charged|₹|lakh|loan|credit/i.test(q) && /%|₹|lakh|interest|rate|credit|loan/i.test(p.text))score+=12;
-    // Member-count questions ("max members in a group/SHG") need a page that states an actual number next to "member(s)", not just any SHG-related page.
-    if(/member/i.test(q) && /shg|self\s*help|group/i.test(q) && nearNumber(p.text,'members?'))score+=20;
+    // Any "quantity" question (max/min members, loan ceiling, interest rate, tenure, age, corpus, etc.) needs a page
+    // that actually states a number next to the subject the question is asking about — not just any page on the topic.
+    // The subject is pulled from the question itself so this works for new documents/topics without code changes.
+    if(isQuantityQuestion(q) && quantityNear(p.text,q))score+=20;
     // Extra boost when the page's number is qualified in the same direction the question asks for (max vs min) — avoids a "minimum" exception clause beating the real "maximum" figure.
-    { const dir=directionRegex(q); if(dir && nearNumber(p.text,'members?') && (dir.test(p.text) || (/maximum|max\b/i.test(q) && rangeMembers(p.text)))) score+=15; }
-
+    { const dir=directionRegex(q); if(dir && quantityNear(p.text,q) && (dir.test(p.text) || (/maximum|max\b/i.test(q) && rangeNear(p.text,q)))) score+=15; }
     const hits=sentenceHits(p.text,q);
     if(hits[0])score+=hits[0].score;
 
@@ -281,10 +282,39 @@ function nearNumber(text,word){
   return before.test(text)||after.test(text);
 }
 
-// Detects "X to Y members" / "X-20 members" style range statements — the upper number is the effective maximum,
-// even though the sentence never uses the word "maximum".
-function rangeMembers(text){
-  return /\b\d{1,3}\s*(?:-|to|–|and)\s*\d{1,3}\s*members?\b/i.test(text);
+function escapeReg(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+
+// Common words that carry no topical meaning — stripped out so what's left is the actual thing the
+// question is asking a number about ("members", "loan amount", "interest rate", "tenure", "corpus"...).
+const STOPWORDS=new Set(['what','is','are','was','were','the','a','an','of','in','on','to','by','for','and','or',
+  'with','how','many','much','maximum','minimum','max','min','limit','limits','number','no','per','allowed',
+  'permitted','can','could','be','does','do','it','its','that','this','which','under','as','i','me','my']);
+
+// Pulls the subject noun(s) out of a question — e.g. "members" from "max members in a group",
+// "loan amount"→["loan","amount"] from "what is the maximum loan amount". Works for any topic, not just SHGs.
+function subjectTerms(q){
+  return q.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').split(/\s+/)
+    .filter(w=>w.length>2 && !STOPWORDS.has(w));
+}
+
+// A question is treated as asking "how much/how many" whenever it uses quantity language — this is what
+// triggers the number-adjacency logic below, regardless of what the underlying document is about.
+function isQuantityQuestion(q){
+  return /\b(maximum|minimum|max|min|limit|how many|how much|number of|no\.? of|rate|amount|percentage|tenure|period|duration|age|corpus|ceiling|cap)\b|%|₹/i.test(q);
+}
+
+// True when the text has a number sitting near ANY of the question's subject terms — e.g. "20 members" for a
+// members question, "9.5% ... interest" for a rate question (adjacency, not just co-occurrence anywhere in the sentence).
+function quantityNear(text,q){
+  const terms=subjectTerms(q);
+  return terms.some(t=>nearNumber(text,escapeReg(t)+'s?'));
+}
+
+// Detects "X to Y <subject>" style range statements — the upper number is the effective maximum,
+// even though the sentence never uses the word "maximum". Generalised to any subject term, not just "members".
+function rangeNear(text,q){
+  const terms=subjectTerms(q);
+  return terms.some(t=>new RegExp('\\b\\d{1,3}\\s*(?:-|to|–|and)\\s*\\d{1,3}\\s*'+escapeReg(t)+'s?\\b','i').test(text));
 }
 
 // Detects whether the question is asking for the upper (maximum) or lower (minimum) figure, so a sentence
@@ -295,6 +325,24 @@ function directionRegex(q){
   if(/\b(minimum|min)\b|at least|lower limit/i.test(q))
     return /minimum|at least|not less than/i;
   return null;
+}
+
+// True only when the direction wording (maximum/minimum/etc.) sits near the SPECIFIC matched term — not just
+// somewhere else in a long sentence. This is what stops an unrelated "up to ₹10 lakh" loan clause from being
+// read as the "maximum" answer to a question about something else, just because both phrases share one sentence.
+function directionNear(text,term,dir){
+  const d=dir.source;
+  const re=new RegExp('(?:'+d+')[^.]{0,30}\\b'+term+'\\b|\\b'+term+'\\b[^.]{0,30}(?:'+d+')','i');
+  return re.test(text);
+}
+
+// How many pages in the whole library mention this term — used to down-weight generic domain words ("loan", "SHG")
+// that appear on nearly every page, so they don't outrank the actually specific word the question is asking about.
+function termDocFreq(term){
+  const re=new RegExp('\\b'+escapeReg(term)+'s?\\b','i');
+  let count=0;
+  for(const p of S.pages){ if(re.test(p.text)) count++; }
+  return count;
 }
 
 // Question wording that signals the user explicitly wants a fuller/longer answer.
@@ -313,20 +361,36 @@ function extractAnswer(q,hits,detail){
 
   const cap=detail?3:1; // Concise by default: one sentence. Full detail only when asked.
 
-  // SHG member-count question ("maximum members in a group"): only trust a sentence that actually states a number next to "member(s)",
-  // and prefer the sentence whose wording matches the direction (maximum vs minimum) the question is asking about.
-  if(/member/i.test(ql) && /shg|self\s*help|group/i.test(ql)){
-    let numeric=candidates.filter(c=>nearNumber(c.s,'members?'));
+  // Generic "quantity" question — max/min members, loan ceiling, interest rate, tenure, age, corpus, etc.
+  // Only trust a sentence that actually states a number next to the subject the question is asking about,
+  // and prefer the sentence whose wording matches the direction (maximum vs minimum) being asked for.
+  // Because the subject comes from the question itself, this needs no update when a new document/topic is added.
+  if(isQuantityQuestion(ql)){
+    const terms=subjectTerms(ql);
     const dir=directionRegex(ql);
-    if(dir){
-      let directional=numeric.filter(c=>dir.test(c.s));
-      // A "maximum" question is also satisfied by a range statement ("10 to 20 members") — the upper figure is the max.
-      if(!directional.length && /maximum|max\b/i.test(ql))directional=numeric.filter(c=>rangeMembers(c.s));
-      if(directional.length)numeric=directional;
+    const wantsMax=/maximum|max\b/i.test(ql);
+    // Rarer terms across the library are more specific to this question and get more weight than words that
+    // appear on almost every page (e.g. "loan" or "SHG" in a loan/SHG document).
+    const weight={}; terms.forEach(t=>{ weight[t]=1/(termDocFreq(t)||1); });
+    function rank(s){
+      const matched=terms.filter(t=>nearNumber(s,escapeReg(t)+'s?'));
+      // Direction wording only counts if it sits near the SAME matched term, not just anywhere in a long sentence —
+      // otherwise an unrelated "up to ₹X" (e.g. a loan ceiling) could masquerade as the "maximum" answer to a
+      // completely different question just because both words appear somewhere in one long paragraph.
+      const dirHit=(dir && matched.some(t=>directionNear(s,t,dir)))?1:0;
+      const rangeHit=(wantsMax && rangeNear(s,ql))?1:0;
+      return {count:matched.length, bonus:dirHit+rangeHit, w:matched.reduce((a,t)=>a+weight[t],0)};
     }
+    // A genuine direction/range match (max vs min wording actually attached to the right term) is a stronger
+    // relevance signal than raw term-count, so it's ranked first; term-count and rarity are the tie-breakers.
+    let numeric=candidates
+      .map(c=>({...c,_r:rank(c.s)}))
+      .filter(c=>c._r.count>0)
+      .sort((a,b)=>(b._r.bonus-a._r.bonus)||(b._r.count-a._r.count)||(b._r.w-a._r.w));
+
     if(numeric.length)return numeric.slice(0,detail?2:1).map(x=>x.s).join(' ');
-    // Fall back to any SHG/member sentence only if no page actually states a count.
-    const good=candidates.filter(c=>/member|shg|self\s*help/i.test(c.s));
+    // Fall back to any sentence containing the subject terms only if no page actually states a figure.
+    const good=candidates.filter(c=>terms.some(t=>c.s.toLowerCase().includes(t)));
     if(good.length)return good.slice(0,detail?2:1).map(x=>x.s).join(' ');
   }
 
