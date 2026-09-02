@@ -227,8 +227,18 @@ function expand(q){
   return [...out];
 }
 
+// Splits page text into sentences without breaking after common abbreviations — most importantly "Rs.", which
+// precedes almost every rupee figure in Indian financial text ("up to Rs. 1,50,000"). Naively splitting on any
+// ".<space>" would sever the figure from the word right before it, breaking every downstream number-adjacency check.
+function splitSentences(text){
+  const PH='\u0001';
+  const abbr=/\b(Rs|No|Mr|Mrs|Ms|Dr|Prof|St|vs|viz|etc|approx|govt|dept|resp|min|max|Fig|Art|Sec|Cl|Para|Regn|Regd)\.(?=\s)/gi;
+  const protectedText=text.replace(abbr,'$1'+PH);
+  return protectedText.split(/(?<=[.!?;])\s+/).map(s=>s.replace(new RegExp(PH,'g'),'.'));
+}
+
 function sentenceHits(text,q){
-  const sentences=text.split(/(?<=[.!?;])\s+/);
+  const sentences=splitSentences(text);
   const qTokens=toks(q);
   return sentences.map(s=>{
     const x=s.toLowerCase();
@@ -276,9 +286,11 @@ function retrieve(q){
 // rather than just anywhere in the same long sentence (which previously let an unrelated ₹ loan amount masquerade as a group-size figure).
 function nearNumber(text,word){
   // Number (optionally a range) directly on the word: "20 members", "10 to 20 members", "not more than 20 members".
-  const before=new RegExp('\\b\\d{1,4}\\b(?:\\s*(?:-|to|–)\\s*\\d{1,4}\\b)?\\s*(?:\\w+\\s+){0,1}\\b'+word+'\\b','i');
-  // Word leading into the number: "members shall not exceed 20", "members of the SHG shall not exceed 20".
-  const after=new RegExp('\\b'+word+'\\b\\s*(?:\\w+\\s+){0,6}\\b\\d{1,4}\\b','i');
+  const before=new RegExp('\\b\\d{1,4}\\b(?:\\s*(?:-|to|–)\\s*\\d{1,4}\\b)?\\s*(?:\\S+\\s+){0,1}\\b'+word+'\\b','i');
+  // Word leading into the number: "members shall not exceed 20", "the SHG may be up to Rs. 1,50,000".
+  // Filler tokens use \S+ (not \w+) so a token with trailing punctuation like "Rs." still counts as one filler
+  // word instead of silently breaking the match.
+  const after=new RegExp('\\b'+word+'\\b\\s*(?:\\S+\\s+){0,8}\\b\\d{1,4}\\b','i');
   return before.test(text)||after.test(text);
 }
 
@@ -360,6 +372,13 @@ function looksLikeHeading(s){
   return numberedHeading && words.length<=12 && !hasVerb;
 }
 
+// Strips a leading section/clause number ("3.3 ", "7.3.1 ") before checking number-adjacency for the actual
+// content. Without this, "3.3 Loan amount (i) Emphasis is laid on..." would look like it states a figure next
+// to "loan" — the "3.3" is document numbering, not data, and must never be read as answering a quantity question.
+function stripSectionPrefix(s){
+  return s.replace(/^\s*\d+(\.\d+){0,3}\s*[.)]?\s+(?=[A-Za-z(])/,'');
+}
+
 function extractAnswer(q,hits,detail){
   const ql=q.toLowerCase();
   if(!hits.length)return null;
@@ -386,32 +405,42 @@ function extractAnswer(q,hits,detail){
     // appear on almost every page (e.g. "loan" or "SHG" in a loan/SHG document).
     const weight={}; terms.forEach(t=>{ weight[t]=1/(termDocFreq(t)||1); });
     function rank(s){
-      const matched=terms.filter(t=>nearNumber(s,escapeReg(t)+'s?'));
+      const body=stripSectionPrefix(s); // ignore leading clause numbers like "3.3 " when checking for a real figure
+      const matched=terms.filter(t=>nearNumber(body,escapeReg(t)+'s?'));
       // Direction wording only counts if it sits near the SAME matched term, not just anywhere in a long sentence —
       // otherwise an unrelated "up to ₹X" (e.g. a loan ceiling) could masquerade as the "maximum" answer to a
       // completely different question just because both words appear somewhere in one long paragraph.
-      const dirHit=(dir && matched.some(t=>directionNear(s,t,dir)))?1:0;
-      const rangeHit=(wantsMax && rangeNear(s,ql))?1:0;
+      const dirHit=(dir && matched.some(t=>directionNear(body,t,dir)))?1:0;
+      const rangeHit=(wantsMax && rangeNear(body,ql))?1:0;
       return {count:matched.length, bonus:dirHit+rangeHit, w:matched.reduce((a,t)=>a+weight[t],0)};
     }
-    // A genuine direction/range match (max vs min wording actually attached to the right term) is a stronger
-    // relevance signal than raw term-count, so it's ranked first; term-count and rarity are the tie-breakers.
+    // A genuine direction/range match (max vs min wording actually attached to the right term) is the strongest
+    // relevance signal and is ranked first. Term-count is the next tiebreaker (more matched terms = more
+    // confidently on-topic), and rarity-weight only breaks remaining ties between equal counts.
     let numeric=candidates
       .map(c=>({...c,_r:rank(c.s)}))
       .filter(c=>c._r.count>0)
       .sort((a,b)=>(b._r.bonus-a._r.bonus)||(b._r.count-a._r.count)||(b._r.w-a._r.w));
 
     if(numeric.length)return pack(numeric.slice(0,detail?2:1));
-    // Fall back to any sentence containing the subject terms only if no page actually states a figure.
-    const good=candidates.filter(c=>terms.some(t=>c.s.toLowerCase().includes(t)));
-    if(good.length)return pack(good.slice(0,detail?2:1));
+    // No page states an actual figure next to the subject — do NOT fall back to a loosely-matched heading/preamble
+    // sentence just because it contains the same words (e.g. "3.3 Loan amount... Emphasis is laid on..." contains
+    // "amount" and "loan" but states no figure at all). Falling through to "Not found" / Gemini synthesis is more
+    // honest than implying an answer exists when the evidence doesn't actually contain one.
   }
 
-  // Interest/rate/loan amount question: return the exact supporting sentence(s).
-  if(/interest|rate|charged|loan|credit/i.test(ql)){
+  // Interest/rate/loan questions that AREN'T quantity questions (rare — the generic handling above already
+  // covers virtually all numeric interest/rate/loan cases via "rate"/"amount"/"%"/"₹" triggers in isQuantityQuestion).
+  if(!isQuantityQuestion(ql) && /interest|rate|charged|loan|credit/i.test(ql)){
     const good=candidates.filter(c=>/interest|rate|charged|loan|credit|₹|%|lakh/i.test(c.s));
     if(good.length)return pack(good.slice(0,cap));
   }
+
+  // A quantity question that found no page stating an actual adjacent figure must not fall back to the
+  // highest keyword-overlap candidate below — that's very likely a heading/preamble (e.g. "3.3 Loan amount...
+  // Emphasis is laid on...") that merely shares vocabulary with the question but states no figure at all.
+  // "Not found" (or a Gemini synthesis attempt) is more honest than implying an answer that isn't there.
+  if(isQuantityQuestion(ql))return null;
 
   return candidates.length?pack(candidates.slice(0,cap)):null;
 }
