@@ -261,6 +261,8 @@ function retrieve(q){
     if(/interest|rate|charged|₹|lakh|loan|credit/i.test(q) && /%|₹|lakh|interest|rate|credit|loan/i.test(p.text))score+=12;
     // Member-count questions ("max members in a group/SHG") need a page that states an actual number next to "member(s)", not just any SHG-related page.
     if(/member/i.test(q) && /shg|self\s*help|group/i.test(q) && nearNumber(p.text,'members?'))score+=20;
+    // Extra boost when the page's number is qualified in the same direction the question asks for (max vs min) — avoids a "minimum" exception clause beating the real "maximum" figure.
+    { const dir=directionRegex(q); if(dir && nearNumber(p.text,'members?') && (dir.test(p.text) || (/maximum|max\b/i.test(q) && rangeMembers(p.text)))) score+=15; }
 
     const hits=sentenceHits(p.text,q);
     if(hits[0])score+=hits[0].score;
@@ -273,6 +275,22 @@ function retrieve(q){
 function nearNumber(text,word){
   const re=new RegExp('\\b\\d{1,4}\\b[^.]{0,25}\\b'+word+'\\b|\\b'+word+'\\b[^.]{0,25}\\b\\d{1,4}\\b','i');
   return re.test(text);
+}
+
+// Detects "X to Y members" / "X-20 members" style range statements — the upper number is the effective maximum,
+// even though the sentence never uses the word "maximum".
+function rangeMembers(text){
+  return /\b\d{1,3}\s*(?:-|to|–|and)\s*\d{1,3}\s*members?\b/i.test(text);
+}
+
+// Detects whether the question is asking for the upper (maximum) or lower (minimum) figure, so a sentence
+// about the opposite direction (e.g. a "minimum" exception clause) doesn't get picked for a "maximum" question.
+function directionRegex(q){
+  if(/\b(maximum|max)\b|no more than|not more than|upper limit|at most/i.test(q))
+    return /maximum|not (?:more than|exceed(?:ing)?)|no more than|shall not (?:have|exceed)|up to|at most/i;
+  if(/\b(minimum|min)\b|at least|lower limit/i.test(q))
+    return /minimum|at least|not less than/i;
+  return null;
 }
 
 // Question wording that signals the user explicitly wants a fuller/longer answer.
@@ -291,9 +309,17 @@ function extractAnswer(q,hits,detail){
 
   const cap=detail?3:1; // Concise by default: one sentence. Full detail only when asked.
 
-  // SHG member-count question ("maximum members in a group"): only trust a sentence that actually states a number next to "member(s)".
+  // SHG member-count question ("maximum members in a group"): only trust a sentence that actually states a number next to "member(s)",
+  // and prefer the sentence whose wording matches the direction (maximum vs minimum) the question is asking about.
   if(/member/i.test(ql) && /shg|self\s*help|group/i.test(ql)){
-    const numeric=candidates.filter(c=>nearNumber(c.s,'members?'));
+    let numeric=candidates.filter(c=>nearNumber(c.s,'members?'));
+    const dir=directionRegex(ql);
+    if(dir){
+      let directional=numeric.filter(c=>dir.test(c.s));
+      // A "maximum" question is also satisfied by a range statement ("10 to 20 members") — the upper figure is the max.
+      if(!directional.length && /maximum|max\b/i.test(ql))directional=numeric.filter(c=>rangeMembers(c.s));
+      if(directional.length)numeric=directional;
+    }
     if(numeric.length)return numeric.slice(0,detail?2:1).map(x=>x.s).join(' ');
     // Fall back to any SHG/member sentence only if no page actually states a count.
     const good=candidates.filter(c=>/member|shg|self\s*help/i.test(c.s));
