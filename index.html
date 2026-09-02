@@ -360,6 +360,9 @@ function extractAnswer(q,hits,detail){
   candidates.sort((a,b)=>b.score-a.score);
 
   const cap=detail?3:1; // Concise by default: one sentence. Full detail only when asked.
+  // Bundles the answer text together with exactly which sentence(s)/page(s) produced it, so the Source and
+  // Evidence panels always show what actually backs the answer — not just "the top-ranked page in general".
+  const pack=(list)=>({text:list.map(x=>x.s).join(' '), used:list.map(x=>({doc:x.doc,page:x.page,s:x.s}))});
 
   // Generic "quantity" question — max/min members, loan ceiling, interest rate, tenure, age, corpus, etc.
   // Only trust a sentence that actually states a number next to the subject the question is asking about,
@@ -388,19 +391,19 @@ function extractAnswer(q,hits,detail){
       .filter(c=>c._r.count>0)
       .sort((a,b)=>(b._r.bonus-a._r.bonus)||(b._r.count-a._r.count)||(b._r.w-a._r.w));
 
-    if(numeric.length)return numeric.slice(0,detail?2:1).map(x=>x.s).join(' ');
+    if(numeric.length)return pack(numeric.slice(0,detail?2:1));
     // Fall back to any sentence containing the subject terms only if no page actually states a figure.
     const good=candidates.filter(c=>terms.some(t=>c.s.toLowerCase().includes(t)));
-    if(good.length)return good.slice(0,detail?2:1).map(x=>x.s).join(' ');
+    if(good.length)return pack(good.slice(0,detail?2:1));
   }
 
   // Interest/rate/loan amount question: return the exact supporting sentence(s).
   if(/interest|rate|charged|loan|credit/i.test(ql)){
     const good=candidates.filter(c=>/interest|rate|charged|loan|credit|₹|%|lakh/i.test(c.s));
-    if(good.length)return good.slice(0,cap).map(x=>x.s).join(' ');
+    if(good.length)return pack(good.slice(0,cap));
   }
 
-  return candidates.slice(0,cap).map(x=>x.s).join(' ')||null;
+  return candidates.length?pack(candidates.slice(0,cap)):null;
 }
 
 async function gemini(q,h,detail){
@@ -452,19 +455,33 @@ async function runAsk(q,detail){
   }
 
   // Local deterministic answer first; Gemini only synthesises already-retrieved evidence.
-  let a=extractAnswer(q,h,detail);
-  if(!a)a=await gemini(q,h,detail);
-  if(!a)a='Not found in supplied material.';
+  const found=extractAnswer(q,h,detail);
+  let answerText, usedSources=null;
+  if(found){ answerText=found.text; usedSources=found.used; }
+  else { answerText=await gemini(q,h,detail); }
+  if(!answerText)answerText='Not found in supplied material.';
 
-  $('ans').textContent=a;
-  if($('autoSpeak').checked)speakText(a);
+  $('ans').textContent=answerText;
+  if($('autoSpeak').checked)speakText(answerText);
 
-  const best=h[0];
+  // Source/Evidence must reflect the sentence(s) that actually produced the answer — not just "the top page in
+  // general" — otherwise the audit trail can show unrelated evidence next to a correct answer, which is worse
+  // than no evidence at all for a regulatory tool. Only falls back to the general top-pages view when the
+  // answer came from Gemini synthesis, which draws on multiple pages without a single-sentence attribution.
+  const best = (usedSources && usedSources.length)
+    ? (h.find(p=>p.doc===usedSources[0].doc && p.page===usedSources[0].page) || h[0])
+    : h[0];
   $('src').innerHTML=`<div class="box"><div class="label">SOURCE</div><b>${esc(best.doc)} · Page ${best.page}</b><div class="small">Reading method: ${esc(best.method)}</div></div>`;
 
-  $('ev').innerHTML=`<div class="box"><div class="label">EVIDENCE USED</div>${
-    h.slice(0,5).map((x,i)=>`<p><b>${i+1}. ${esc(x.doc)} — Page ${x.page}</b><br>${esc(x.hits?.[0]?.s||x.text)}</p>`).join('')
-  }</div>`;
+  if(usedSources && usedSources.length){
+    $('ev').innerHTML=`<div class="box"><div class="label">EVIDENCE USED</div>${
+      usedSources.map((x,i)=>`<p><b>${i+1}. ${esc(x.doc)} — Page ${x.page}</b><br>${esc(x.s)}</p>`).join('')
+    }</div>`;
+  }else{
+    $('ev').innerHTML=`<div class="box"><div class="label">EVIDENCE USED</div><div class="small">Answer synthesised by Gemini from the pages below.</div>${
+      h.slice(0,5).map((x,i)=>`<p><b>${i+1}. ${esc(x.doc)} — Page ${x.page}</b><br>${esc(x.hits?.[0]?.s||x.text)}</p>`).join('')
+    }</div>`;
+  }
 
   $('status').textContent=`Auto: ${h.length} relevant page(s) reviewed; strongest exact evidence selected.`;
 }
