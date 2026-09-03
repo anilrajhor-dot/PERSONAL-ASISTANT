@@ -937,6 +937,11 @@ function fmtPct(n){ return isFinite(n)? n.toFixed(2)+'%' : '—'; }
 // credit policy or industry-specific standards, and the UI says so explicitly next to every comment.
 function commentFor(key,val){
   if(!isFinite(val))return null;
+  // Sanity guard: some values are essentially impossible for a real business and almost always signal a data
+  // problem (wrong figures extracted, wrong units mixed, or a typo) rather than genuine performance — flag
+  // these distinctly instead of applying the normal benchmark comment, so a bad extraction is caught immediately.
+  if((key==='npm'||key==='margin')&&Math.abs(val)>100)
+    return{text:'⚠️ This margin is above 100% — that is essentially never real for an operating business. Double-check the underlying figures (especially if auto-filled) before relying on this.',tone:'bad'};
   switch(key){
     case 'currentRatio':
       if(val>=1.33)return{text:'Comfortable — meets the 1.33:1 norm commonly applied by banks.',tone:'good'};
@@ -1045,22 +1050,25 @@ function findFigure(labelRegexes){
         if(!m)continue;
 
         // Tabular row (e.g. an Excel sheet's "Label,ThisYear,LastYear"): find the cell containing the label,
-        // then take the FIRST number in the very next non-blank cell — never scan raw characters straight
-        // through a column-separator comma, which would otherwise silently merge two different years' figures.
-        // Only trusted as genuinely tabular if that next cell is a clean bare number; a prose sentence that
-        // merely contains a comma (e.g. an Indian-formatted "45,00,000" figure, or an ordinary grammatical
-        // comma) fails this check and falls through to prose scanning below instead of being abandoned.
-        const cells=csvCells(line);
-        if(cells.length>1){
-          const labelIdx=cells.findIndex(c=>re.test(c));
-          if(labelIdx>=0){
-            let i=labelIdx+1;
-            while(i<cells.length && cells[i]==='')i++;
-            if(i<cells.length){
-              const cellMatch=cells[i].match(/^\(?-?\s*(?:Rs\.?|₹)?\s*[\d][\d,]*(?:\.\d+)?\)?\/?-?$/i);
-              if(cellMatch){
-                const val=parseAmount(cells[i]);
-                if(isFinite(val))return{value:val,doc:p.doc,page:p.page,snippet:line.trim().slice(0,140)};
+        // then take the FIRST number in the very next non-blank cell. ONLY attempted for genuinely CSV-structured
+        // Excel-sourced pages — critically, never for PDF/text pages, where commas are NOT column separators at
+        // all, they only ever appear as thousands-separators inside a number ("8,244.64") or ordinary punctuation.
+        // Running comma-based cell-splitting on such text would fragment a real figure like "8,244.64" into "8"
+        // and "244.64" and could wrongly return a fragment as if it were a genuine standalone value — exactly
+        // the bug that produced nonsense figures (e.g. "₹50" revenue) from a real financial statement PDF.
+        if(p.method==='Excel sheet'){
+          const cells=csvCells(line);
+          if(cells.length>1){
+            const labelIdx=cells.findIndex(c=>re.test(c));
+            if(labelIdx>=0){
+              let i=labelIdx+1;
+              while(i<cells.length && cells[i]==='')i++;
+              if(i<cells.length){
+                const cellMatch=cells[i].match(/^\(?-?\s*(?:Rs\.?|₹)?\s*[\d][\d,]*(?:\.\d+)?\)?\/?-?$/i);
+                if(cellMatch){
+                  const val=parseAmount(cells[i]);
+                  if(isFinite(val))return{value:val,doc:p.doc,page:p.page,snippet:line.trim().slice(0,140)};
+                }
               }
             }
           }
@@ -1141,9 +1149,9 @@ $('calcFS').onclick=()=>{
   if(isFinite(TOL)&&isFinite(TNW)&&TNW!==0)
     rows.push(ratioRow('Debt-Equity Ratio (TOL/TNW)', fmtNum(TOL/TNW)+' : 1','Total Outside Liabilities ÷ Tangible Net Worth',commentFor('debtEquity',TOL/TNW)));
   if(isFinite(GP)&&isFinite(SALES)&&SALES!==0)
-    rows.push(ratioRow('Gross Profit Margin', fmtPct(GP/SALES*100),'Gross Profit ÷ Net Sales × 100',commentFor('margin',0)));
+    rows.push(ratioRow('Gross Profit Margin', fmtPct(GP/SALES*100),'Gross Profit ÷ Net Sales × 100',commentFor('margin',GP/SALES*100)));
   if(isFinite(NP)&&isFinite(SALES)&&SALES!==0)
-    rows.push(ratioRow('Net Profit Margin', fmtPct(NP/SALES*100),'Net Profit ÷ Net Sales × 100',commentFor('margin',0)));
+    rows.push(ratioRow('Net Profit Margin', fmtPct(NP/SALES*100),'Net Profit ÷ Net Sales × 100',commentFor('margin',NP/SALES*100)));
   if(isFinite(NP)&&isFinite(TNW)&&TNW!==0)
     rows.push(ratioRow('Return on Net Worth (RONW)', fmtPct(NP/TNW*100),'Net Profit ÷ Tangible Net Worth × 100',commentFor('ronw',NP/TNW*100)));
   if(isFinite(NP)&&isFinite(TA)&&TA!==0)
@@ -1244,10 +1252,10 @@ $('buildCMA').onclick=()=>{
     rows.push(sectionRow('FORM II — Operating Statement'));
     if(isFinite(SALES))rows.push(ratioRow('Net Sales / Revenue','₹ '+fmtNum(SALES,0),''));
     if(isFinite(GP))rows.push(ratioRow('Gross Profit','₹ '+fmtNum(GP,0),''));
-    if(isFinite(GP)&&isFinite(SALES)&&SALES!==0)rows.push(ratioRow('Gross Profit Margin',fmtPct(GP/SALES*100),'Gross Profit ÷ Net Sales × 100',commentFor('margin',0)));
+    if(isFinite(GP)&&isFinite(SALES)&&SALES!==0)rows.push(ratioRow('Gross Profit Margin',fmtPct(GP/SALES*100),'Gross Profit ÷ Net Sales × 100',commentFor('margin',GP/SALES*100)));
     if(isFinite(EBIT))rows.push(ratioRow('EBIT (Operating Profit)','₹ '+fmtNum(EBIT,0),''));
     if(isFinite(NP))rows.push(ratioRow('Net Profit (PAT)','₹ '+fmtNum(NP,0),''));
-    if(isFinite(NP)&&isFinite(SALES)&&SALES!==0)rows.push(ratioRow('Net Profit Margin',fmtPct(NP/SALES*100),'Net Profit ÷ Net Sales × 100',commentFor('margin',0)));
+    if(isFinite(NP)&&isFinite(SALES)&&SALES!==0)rows.push(ratioRow('Net Profit Margin',fmtPct(NP/SALES*100),'Net Profit ÷ Net Sales × 100',commentFor('margin',NP/SALES*100)));
   }
 
   if(isFinite(CA)||isFinite(CL)||isFinite(TOL)||isFinite(TNW)){
