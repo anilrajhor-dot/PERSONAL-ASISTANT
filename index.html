@@ -482,7 +482,10 @@ function directionRegex(q){
   if(/\b(maximum|max)\b|no more than|not more than|upper limit|at most/i.test(q))
     return /maximum|not (?:more than|exceed(?:ing)?)|no more than|shall not (?:have|exceed)|up to|at most/i;
   if(/\b(minimum|min)\b|at least|lower limit/i.test(q))
-    return /minimum|at least|not less than/i;
+    // "at least" is excluded when immediately followed by a percentage — "at least 50% of loans should be
+    // used for X" is a proportion requirement, not a minimum count/amount for the subject being asked about,
+    // and treating it as one caused an unrelated loan-utilisation clause to outrank a genuine minimum answer.
+    return /minimum|at least(?!\s*\d+\s*%)|not less than/i;
   return null;
 }
 
@@ -570,7 +573,13 @@ function extractAnswer(q,hits,detail){
       // otherwise an unrelated "up to ₹X" (e.g. a loan ceiling) could masquerade as the "maximum" answer to a
       // completely different question just because both words appear somewhere in one long paragraph.
       const dirHit=(dir && matched.some(t=>directionNear(body,t,dir)))?1:0;
-      const rangeHit=(wantsMax && rangeNear(body,ql))?1:0;
+      // A range statement directly on the matched term ("10 to 20 members") is a strong, genuine composition/
+      // count fact regardless of whether the question specifically said "maximum" — a bare "how many members"
+      // question is answered by that range just as well. Excluded for "minimum" questions specifically: a
+      // range's lower bound isn't necessarily "the documented minimum" — there can be a separate minimum-
+      // exception clause elsewhere (e.g. a relaxed floor for difficult-area groups) that the range doesn't capture.
+      const wantsMin=/minimum|min\b/i.test(ql);
+      const rangeHit=(!wantsMin && rangeNear(body,ql))?1:0;
       // An exact multi-word phrase from the question ("first dose", "term loan") appearing verbatim in the
       // sentence is an additional signal on top of term-proximity — it never substitutes for an actual number
       // being present near a matched term. It's weighted by rarity (folded into `w`, not `bonus`) so a genuinely
@@ -1158,10 +1167,15 @@ function findFigure(labelRegexes){
         // current-year figure than its prior year, so "largest" alone would sometimes pick the wrong year).
         const after=line.slice(m.index+m[0].length, m.index+m[0].length+200);
         const numMatches=[...after.matchAll(/\(?-?\s*(?:Rs\.?|₹)?\s*[\d][\d,]*(?:\.\d+)?\)?/g)].slice(0,5);
-        const vals=numMatches.map(nm=>parseAmount(nm[0].trim())).filter(v=>isFinite(v));
-        const realVals=vals.filter(v=>Math.abs(v)>=100);
-        const pool=realVals.length?realVals:vals;
-        if(pool.length)return{value:pool[0],doc:p.doc,page:p.page,snippet:line.trim().slice(0,140)};
+        const candidates=numMatches.map(nm=>({raw:nm[0].trim(),val:parseAmount(nm[0].trim())})).filter(c=>isFinite(c.val));
+        // A bare 4-digit number that looks exactly like a calendar year ("2025", "2026") is virtually always a
+        // column-header year ("As at 31st March 2025") sitting near the label — not a rupee figure — especially
+        // in OCR'd text where table columns can get reordered. Excluded unless every candidate looks like a year.
+        const nonYear=candidates.filter(c=>!/^(19|20)\d{2}$/.test(c.raw));
+        const yearFiltered=nonYear.length?nonYear:candidates;
+        const realVals=yearFiltered.filter(c=>Math.abs(c.val)>=100);
+        const pool=realVals.length?realVals:yearFiltered;
+        if(pool.length)return{value:pool[0].val,doc:p.doc,page:p.page,snippet:line.trim().slice(0,140)};
       }
     }
   }
