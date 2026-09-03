@@ -1,10 +1,40 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Personal Assistant · Anil Sharma</title><style>:root{--b:#1658a8;--ink:#18243a;--mut:#586a84;--line:#d8e4f3;--soft:#f1f6fd}*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}header{background:linear-gradient(135deg,#174f98,#2264b7);color:#fff;padding:20px 18px 16px;position:sticky;top:0;z-index:5;box-shadow:0 5px 18px #173e7222}.brand{display:flex;gap:15px;align-items:center}.logo{width:72px;height:72px;border-radius:22px;background:#fff;color:var(--b);display:grid;place-items:center;font-size:52px;font-weight:900}.h1{font-size:27px;font-weight:900}.sub{font-size:17px;font-weight:750;opacity:.9}.tabs{display:flex;gap:10px;margin-top:18px}.tab{flex:1;border:2px solid #ffffff55;background:#ffffff10;color:#fff;border-radius:22px;padding:13px 10px;font-size:17px;font-weight:850}.tab.active{background:#fff;color:var(--b);border-color:#fff}main{max-width:900px;margin:auto;padding:14px 12px 50px}.card{background:#fff;border:2px solid var(--line);border-radius:25px;padding:20px;margin:14px 0;box-shadow:0 5px 18px #254a7810}h2{font-size:31px;margin:2px 0 18px}.notice{background:var(--soft);border-radius:22px;padding:17px;color:var(--mut);font-weight:750;line-height:1.55}textarea{width:100%;min-height:145px;margin-top:14px;border:2px solid var(--line);border-radius:22px;padding:18px;font-size:18px;outline:0}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}button,.filebtn{border:0;border-radius:18px;padding:13px 18px;font-size:17px;font-weight:850;background:#eef3f9;color:#26344a}.primary,.filebtn{background:var(--b);color:#fff}.green{background:#e4f6ef;color:#087b52}.status{margin-top:13px;color:#087b52;font-weight:800}.progress{height:10px;background:#e8eef7;border-radius:99px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:var(--b)}.label{color:var(--b);font-weight:900;letter-spacing:1px;font-size:20px}.answer{font-size:20px;line-height:1.55;font-weight:650;white-space:pre-wrap;margin-top:8px}.box{border:2px solid var(--line);border-radius:22px;padding:17px;margin-top:14px}.small{font-size:14px;color:var(--mut)}.doc{padding:13px 0;border-bottom:1px solid #e6edf6;font-weight:800}.hidden{display:none!important}input[type=file]{display:none}input[type=password]{width:100%;padding:13px;border:2px solid var(--line);border-radius:15px;font-size:16px}.setting{display:block;font-weight:800;margin:16px 0 7px}.check{margin-top:14px;font-weight:750}footer{text-align:center;color:#72829a;font-size:13px;padding:20px}@media(max-width:600px){.h1{font-size:25px}.sub{font-size:16px}.logo{width:68px;height:68px;font-size:48px}.tab{font-size:16px;padding:12px 7px}.card{padding:17px}}
-</style></head><body><header><div class="brand"><div class="logo">P</div><div><div class="h1">Personal Assistant</div><div class="sub">Developed by Anil Sharma, Former General Manager, Central Bank of India</div></div></div><div class="tabs" id="mainTabs"><button type="button" class="tab active" data-t="ask" onclick="showMainPanel('ask')">Ask RBI</button><button type="button" class="tab" data-t="lib" onclick="showMainPanel('lib')">Knowledge Library</button><button type="button" class="tab" data-t="set" onclick="showMainPanel('set')">Settings</button></div></header><main><section id="askPanel"><div class="card"><div class="notice"><b>Document Reading Engine v3.34</b><br>Read first → extract/OCR every page → index page-by-page → rank exact evidence → answer. Document name and page number stay attached to every evidence block. Scanned pages are OCR-checked. Unsupported facts are not guessed.</div><textarea id="q" placeholder="Ask from the loaded documents, e.g. What is the maximum number of members in an SHG?"></textarea><div class="row"><button class="primary" id="askBtn">Ask RBI</button><button class="green" id="speak" type="button">🎙️ Speak</button><button id="clear">Clear</button></div>
-<div class="check"><label><input id="autoSpeak" type="checkbox"> Read answers aloud automatically</label></div><div class="small" id="aiMode"></div><div class="status" id="status">Ready. Load documents in Knowledge Library first.</div></div><div class="card"><h2>Answer</h2><div class="notice">Smart answer: direct answer first; essential condition second; exact source/page when established.</div><div style="margin-top:18px"><div class="label">ANSWER</div><div class="answer" id="ans">No question answered yet.</div><div class="row" id="ansActions" style="margin-top:10px"><button id="speakAns" type="button">🔊 Listen</button><button id="detailBtn" type="button">＋ More detail</button></div><div id="src"></div><div id="ev"></div></div></div></section><section id="lib" class="hidden"><div class="card"><h2>Knowledge Library</h2><div class="notice"><b>First read → then index → then answer.</b><br>PDFs are extracted page-by-page. Text/CSV/JSON/Markdown files are indexed as documents. The library and saved settings are stored in permanent browser storage independent of app version. Adding documents never erases existing documents. Add documents appends to the existing library; it does not erase it. All retrieval is local except optional Gemini synthesis.</div><div class="row"><label class="filebtn">＋ Add documents<input id="files" type="file" multiple accept=".pdf,.txt,.md,.csv,.json"></label><button id="clearLib">Clear Library</button></div><div class="progress"><div class="bar" id="bar"></div></div><div class="status" id="ls">No documents loaded.</div><div id="docs"></div></div></section><section id="set" class="hidden"><div class="card"><h2>Settings</h2><label class="setting">Gemini API key (optional)</label><input id="key" type="password" placeholder="Stored only in this browser"><div class="small">Without a key, the evidence retrieval engine still works. With a key, Gemini may synthesise an answer strictly from retrieved evidence.</div><div class="check"><label><input id="strict" type="checkbox" checked> Strict evidence lock</label></div><div class="row"><button class="primary" id="save">Save settings</button><button id="reset">Reset</button></div></div><div class="card"><h3>v3.34 reading safeguards</h3><ol style="line-height:1.7"><li>Every PDF page is extracted separately.</li><li>Page number is stored with each text block.</li><li>PDF line-break and spacing noise is normalised without changing wording.</li><li>Search ranks exact phrases, words and numeric matches.</li><li>Top evidence is displayed for checking.</li><li>If no supporting evidence exists, the app says “Not found in supplied material.”</li></ol></div></section><footer>Personal Assistant · Developed by Anil Sharma, Former General Manager, Central Bank of India</footer></main><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Personal Assistant · Anil Sharma</title><style>:root{--b:#1658a8;--ink:#18243a;--mut:#586a84;--line:#d8e4f3;--soft:#f1f6fd}*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}header{background:linear-gradient(135deg,#174f98,#2264b7);color:#fff;padding:20px 18px 16px;position:sticky;top:0;z-index:5;box-shadow:0 5px 18px #173e7222}.brand{display:flex;gap:15px;align-items:center}.logo{width:72px;height:72px;border-radius:22px;background:#fff;color:var(--b);display:grid;place-items:center;font-size:52px;font-weight:900}.h1{font-size:27px;font-weight:900}.sub{font-size:17px;font-weight:750;opacity:.9}.tabs{display:flex;gap:10px;margin-top:18px}.tab{flex:1;border:2px solid #ffffff55;background:#ffffff10;color:#fff;border-radius:22px;padding:13px 10px;font-size:17px;font-weight:850}.tab.active{background:#fff;color:var(--b);border-color:#fff}main{max-width:900px;margin:auto;padding:14px 12px 50px}.card{background:#fff;border:2px solid var(--line);border-radius:25px;padding:20px;margin:14px 0;box-shadow:0 5px 18px #254a7810}h2{font-size:31px;margin:2px 0 18px}.notice{background:var(--soft);border-radius:22px;padding:17px;color:var(--mut);font-weight:750;line-height:1.55}textarea{width:100%;min-height:145px;margin-top:14px;border:2px solid var(--line);border-radius:22px;padding:18px;font-size:18px;outline:0}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}button,.filebtn{border:0;border-radius:18px;padding:13px 18px;font-size:17px;font-weight:850;background:#eef3f9;color:#26344a}.primary,.filebtn{background:var(--b);color:#fff}.green{background:#e4f6ef;color:#087b52}.status{margin-top:13px;color:#087b52;font-weight:800}.progress{height:10px;background:#e8eef7;border-radius:99px;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:var(--b)}.label{color:var(--b);font-weight:900;letter-spacing:1px;font-size:20px}.answer{font-size:20px;line-height:1.55;font-weight:650;white-space:pre-wrap;margin-top:8px}.box{border:2px solid var(--line);border-radius:22px;padding:17px;margin-top:14px}.small{font-size:14px;color:var(--mut)}.doc{padding:13px 0;border-bottom:1px solid #e6edf6;font-weight:800}.hidden{display:none!important}input[type=file]{display:none}input[type=password]{width:100%;padding:13px;border:2px solid var(--line);border-radius:15px;font-size:16px}.setting{display:block;font-weight:800;margin:16px 0 7px}.check{margin-top:14px;font-weight:750}footer{text-align:center;color:#72829a;font-size:13px;padding:20px}.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.fgrid label{display:block;font-size:13px;font-weight:800;color:var(--mut);margin-bottom:4px}.fgrid input[type=number]{width:100%;padding:11px;border:2px solid var(--line);border-radius:14px;font-size:16px}.rtable{width:100%;border-collapse:collapse;margin-top:10px}.rtable td{padding:10px 6px;border-bottom:1px solid #e6edf6;font-size:15px;vertical-align:top}.rtable td:first-child{font-weight:800;color:var(--ink)}.rtable td:last-child{text-align:right;font-weight:900;color:var(--b);white-space:nowrap}.rformula{font-size:11px;color:var(--mut);font-weight:600;display:block;margin-top:2px}.subtabs{display:flex;gap:8px;margin-top:14px}.subtab{flex:1;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:16px;padding:11px 8px;font-size:14px;font-weight:800}.subtab.active{background:var(--b);color:#fff;border-color:var(--b)}@media(max-width:600px){.h1{font-size:25px}.sub{font-size:16px}.logo{width:68px;height:68px;font-size:48px}.tab{font-size:16px;padding:12px 7px}.card{padding:17px}.fgrid{grid-template-columns:1fr}}
+</style></head><body><header><div class="brand"><div class="logo">P</div><div><div class="h1">Personal Assistant</div><div class="sub">Developed by Anil Sharma, Former General Manager, Central Bank of India</div></div></div><div class="tabs" id="mainTabs"><button type="button" class="tab active" data-t="ask" onclick="showMainPanel('ask')">Ask RBI</button><button type="button" class="tab" data-t="lib" onclick="showMainPanel('lib')">Knowledge Library</button><button type="button" class="tab" data-t="ratios" onclick="showMainPanel('ratios')">Ratios</button><button type="button" class="tab" data-t="set" onclick="showMainPanel('set')">Settings</button></div></header><main><section id="askPanel"><div class="card"><div class="notice"><b>Document Reading Engine v3.34</b><br>Read first → extract/OCR every page → index page-by-page → rank exact evidence → answer. Document name and page number stay attached to every evidence block. Scanned pages are OCR-checked. Unsupported facts are not guessed.</div><textarea id="q" placeholder="Ask from the loaded documents, e.g. What is the maximum number of members in an SHG?"></textarea><div class="row"><button class="primary" id="askBtn">Ask RBI</button><button class="green" id="speak" type="button">🎙️ Speak</button><button id="clear">Clear</button></div>
+<div class="check"><label><input id="autoSpeak" type="checkbox"> Read answers aloud automatically</label></div><div class="small" id="aiMode"></div><div class="status" id="status">Ready. Load documents in Knowledge Library first.</div></div><div class="card"><h2>Answer</h2><div class="notice">Smart answer: direct answer first; essential condition second; exact source/page when established.</div><div style="margin-top:18px"><div class="label">ANSWER</div><div class="answer" id="ans">No question answered yet.</div><div class="row" id="ansActions" style="margin-top:10px"><button id="speakAns" type="button">🔊 Listen</button><button id="detailBtn" type="button">＋ More detail</button></div><div id="src"></div><div id="ev"></div></div></div></section><section id="lib" class="hidden"><div class="card"><h2>Knowledge Library</h2><div class="notice"><b>First read → then index → then answer.</b><br>PDFs are extracted page-by-page. Word (.docx) files are read in full. Excel (.xlsx/.xls) files are read sheet-by-sheet. PowerPoint (.pptx) files are read slide-by-slide. Text/CSV/JSON/Markdown files are indexed as documents. The library and saved settings are stored in permanent browser storage independent of app version. Adding documents never erases existing documents. Add documents appends to the existing library; it does not erase it. All retrieval is local except optional Gemini synthesis.</div><div class="row"><label class="filebtn">＋ Add documents<input id="files" type="file" multiple accept=".pdf,.txt,.md,.csv,.json,.docx,.xlsx,.xls,.pptx"></label><button id="clearLib">Clear Library</button></div><div class="progress"><div class="bar" id="bar"></div></div><div class="status" id="ls">No documents loaded.</div><div id="docs"></div></div></section><section id="ratiosPanel" class="hidden"><div class="card"><h2>Financial Ratio Calculator</h2><div class="notice"><b>Local, deterministic calculations — no AI, no pattern-matching, works fully offline.</b><br>Enter figures directly from your Profit &amp; Loss, Balance Sheet, or CMA data. Every ratio below is computed by exact arithmetic on the numbers you type in, using standard formulas — not extracted or guessed from any document.</div><div class="subtabs" id="ratioModeTabs"><button type="button" class="subtab active" id="rmFS">Financial Statement Ratios</button><button type="button" class="subtab" id="rmCMA">CMA &amp; MPBF (Tandon Method)</button></div></div>
+
+<div class="card" id="fsCard"><h3>Balance Sheet &amp; P&amp;L Figures</h3><div class="small">Enter every figure in the same unit throughout (₹, ₹ lakh, or ₹ crore). Leave any field blank if not applicable — only ratios with all required inputs will be shown.</div><div class="fgrid">
+<div><label>Current Assets</label><input type="number" id="fsCA" placeholder="e.g. 4500000"></div>
+<div><label>Current Liabilities</label><input type="number" id="fsCL" placeholder="e.g. 2800000"></div>
+<div><label>Inventory / Stock</label><input type="number" id="fsInv"></div>
+<div><label>Trade Receivables (Debtors)</label><input type="number" id="fsDeb"></div>
+<div><label>Trade Payables (Creditors)</label><input type="number" id="fsCred"></div>
+<div><label>Total Outside Liabilities</label><input type="number" id="fsTOL"></div>
+<div><label>Tangible Net Worth</label><input type="number" id="fsTNW"></div>
+<div><label>Total Assets</label><input type="number" id="fsTA"></div>
+<div><label>Net Sales / Revenue</label><input type="number" id="fsSales"></div>
+<div><label>Gross Profit</label><input type="number" id="fsGP"></div>
+<div><label>EBIT (Operating Profit)</label><input type="number" id="fsEBIT"></div>
+<div><label>Net Profit (PAT)</label><input type="number" id="fsNP"></div>
+<div><label>Interest Expense</label><input type="number" id="fsInt"></div>
+</div><div class="row"><button class="primary" id="calcFS">Calculate Ratios</button><button id="clearFS" type="button">Clear</button></div><div id="fsResults"></div></div>
+
+<div class="card hidden" id="cmaCard"><h3>Working Capital Assessment — MPBF (Tandon Committee)</h3><div class="small">Standard second-method lending norm calculation as commonly applied by banks for working capital assessment.</div><div class="fgrid">
+<div><label>Total Current Assets</label><input type="number" id="cmaTCA" placeholder="e.g. 6000000"></div>
+<div><label>Other Current Liabilities <span class="small">(excl. bank borrowings)</span></label><input type="number" id="cmaOCL" placeholder="e.g. 1500000"></div>
+<div><label>Existing / Proposed Bank Limit <span class="small">(optional, for comparison)</span></label><input type="number" id="cmaExisting"></div>
+</div>
+<h3 style="margin-top:22px">Debt Service Coverage Ratio (DSCR) <span class="small">(optional)</span></h3><div class="fgrid">
+<div><label>Net Profit After Tax</label><input type="number" id="cmaNP"></div>
+<div><label>Depreciation</label><input type="number" id="cmaDep"></div>
+<div><label>Interest on Term Loan</label><input type="number" id="cmaIntTL"></div>
+<div><label>Term Loan Installment (Principal)</label><input type="number" id="cmaInst"></div>
+</div><div class="row"><button class="primary" id="calcCMA">Calculate MPBF &amp; DSCR</button><button id="clearCMA" type="button">Clear</button></div><div id="cmaResults"></div></div>
+</section>
+<section id="set" class="hidden"><div class="card"><h2>Settings</h2><label class="setting">Gemini API key (optional)</label><input id="key" type="password" placeholder="Stored only in this browser"><div class="small">Without a key, the evidence retrieval engine still works. With a key, Gemini may synthesise an answer strictly from retrieved evidence.</div><div class="check"><label><input id="strict" type="checkbox" checked> Strict evidence lock</label></div><div class="row"><button class="primary" id="save">Save settings</button><button id="reset">Reset</button></div></div><div class="card"><h3>v3.34 reading safeguards</h3><ol style="line-height:1.7"><li>Every PDF page is extracted separately.</li><li>Page number is stored with each text block.</li><li>PDF line-break and spacing noise is normalised without changing wording.</li><li>Search ranks exact phrases, words and numeric matches.</li><li>Top evidence is displayed for checking.</li><li>If no supporting evidence exists, the app says “Not found in supplied material.”</li></ol></div></section><footer>Personal Assistant · Developed by Anil Sharma, Former General Manager, Central Bank of India</footer></main><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script src="https://cdn.jsdelivr.net/npm/mammoth@1.7.0/mammoth.browser.min.js"></script><script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script><script>
 /* Main navigation is deliberately independent of the document-reading module.
    This keeps the three main buttons functional even if an external PDF/OCR module fails to load. */
 function showMainPanel(name){
-  var map={ask:"askPanel",lib:"lib",set:"set"};
+  var map={ask:"askPanel",lib:"lib",ratios:"ratiosPanel",set:"set"};
   var target=map[name];
   if(!target)return false;
   Object.keys(map).forEach(function(k){
@@ -199,6 +229,62 @@ async function readText(file){
   await savePermanent();
 }
 
+// Excel workbooks: each sheet becomes one "page" (numbered by sheet position), converted to a readable
+// row-by-row text layout so the same number-adjacency/quantity logic used for PDFs works unchanged on
+// spreadsheet data (loan schedules, rate tables, member registers, etc.).
+async function readXLSX(file){
+  if(typeof XLSX==='undefined')throw new Error('Spreadsheet engine could not be loaded. Please open the app from its HTTPS web address.');
+  const data=await file.arrayBuffer();
+  const wb=XLSX.read(data,{type:'array'});
+  const d={name:file.name,pages:wb.SheetNames.length,ocr:0};
+  S.docs.push(d);
+  wb.SheetNames.forEach((sheetName,i)=>{
+    const sheet=wb.Sheets[sheetName];
+    const csv=XLSX.utils.sheet_to_csv(sheet,{blankrows:false});
+    const txt=norm(`Sheet: ${sheetName}\n${csv}`);
+    if(txt)addPage(file.name,i+1,txt,'Excel sheet');
+    $('ls').textContent=`Read ${file.name} · sheet ${i+1} of ${wb.SheetNames.length} (${sheetName})`;
+  });
+  await savePermanent();
+}
+
+// Word documents: Mammoth extracts the full readable text in one pass (no fixed page breaks exist in a .docx
+// file itself, unlike a PDF), so the whole document is stored as a single page.
+async function readDOCX(file){
+  if(typeof mammoth==='undefined')throw new Error('Word document engine could not be loaded. Please open the app from its HTTPS web address.');
+  const arrayBuffer=await file.arrayBuffer();
+  const result=await mammoth.extractRawText({arrayBuffer});
+  const txt=norm(result.value||'');
+  S.docs.push({name:file.name,pages:1,ocr:0});
+  if(txt)addPage(file.name,1,txt,'Word text');
+  await savePermanent();
+}
+
+// PowerPoint decks: each slide becomes one "page" (numbered by slide order), by unzipping the .pptx (it's a
+// zip of XML files) and pulling the text runs out of each slideN.xml — the same approach used for PDF pages,
+// so slide 7 shows up in Source/Evidence exactly like page 7 of a PDF would.
+async function readPPTX(file){
+  if(typeof JSZip==='undefined')throw new Error('Presentation engine could not be loaded. Please open the app from its HTTPS web address.');
+  const zip=await JSZip.loadAsync(await file.arrayBuffer());
+  const slideFiles=Object.keys(zip.files)
+    .filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n))
+    .sort((a,b)=>{
+      const na=parseInt(a.match(/slide(\d+)\.xml$/)[1],10), nb=parseInt(b.match(/slide(\d+)\.xml$/)[1],10);
+      return na-nb;
+    });
+  const d={name:file.name,pages:slideFiles.length,ocr:0};
+  S.docs.push(d);
+  for(let i=0;i<slideFiles.length;i++){
+    const xml=await zip.files[slideFiles[i]].async('text');
+    const texts=[...xml.matchAll(/<a:t>([^<]*)<\/a:t>/g)].map(m=>m[1]);
+    const txt=norm(texts.join(' '));
+    if(txt)addPage(file.name,i+1,txt,'PowerPoint slide');
+    $('bar').style.width=((i+1)/slideFiles.length*100)+'%';
+    $('ls').textContent=`Read ${file.name} · slide ${i+1} of ${slideFiles.length}`;
+  }
+  await savePermanent();
+}
+
 async function persistLibrary(){
   const payload={docs:S.docs,chunks:S.chunks,pages:S.pages,savedAt:new Date().toISOString()};
   try{permanentSave(); if(($('key').value||'').trim()) localStorage.setItem(PERM_KEY,$('key').value.trim());}
@@ -211,7 +297,12 @@ $('files').onchange=async e=>{
   for(const f of files){
     try{
       $('ls').textContent=`Reading ${f.name}…`;
-      if(f.name.toLowerCase().endsWith('.pdf'))await readPDF(f);else await readText(f);
+      const n=f.name.toLowerCase();
+      if(n.endsWith('.pdf'))await readPDF(f);
+      else if(n.endsWith('.xlsx')||n.endsWith('.xls'))await readXLSX(f);
+      else if(n.endsWith('.docx'))await readDOCX(f);
+      else if(n.endsWith('.pptx'))await readPPTX(f);
+      else await readText(f);
     }catch(err){$('ls').textContent=`Could not read ${f.name}: ${err.message||err}`;}
   }
   const ok=await savePermanent();render();
@@ -290,11 +381,39 @@ function retrieve(q){
     if(isQuantityQuestion(q) && quantityNear(p.text,q))score+=20;
     // Extra boost when the page's number is qualified in the same direction the question asks for (max vs min) — avoids a "minimum" exception clause beating the real "maximum" figure.
     { const dir=directionRegex(q); if(dir && quantityNear(p.text,q) && (dir.test(p.text) || (/maximum|max\b/i.test(q) && rangeNear(p.text,q)))) score+=15; }
+    // An exact multi-word phrase from the question ("first dose", "term loan") appearing verbatim on the page —
+    // a strong, low-risk relevance signal for real regulatory documents that use these as fixed terms.
+    if(phraseHit(p.text,questionPhrases(q)))score+=25;
     const hits=sentenceHits(p.text,q);
     if(hits[0])score+=hits[0].score;
 
     return {...p,score,hits};
   }).filter(p=>p.score>=5).sort((a,b)=>b.score-a.score).slice(0,18);
+}
+
+// Extracts meaningful 2-word phrases from the question in their original order (e.g. "first dose", "term loan")
+// — an exact phrase match is one of the strongest, lowest-risk relevance signals available locally, since real
+// regulatory documents use fixed multi-word terms ("first dose", "corpus fund", "moratorium period") that a
+// single-word or unordered-keyword search would miss or wrongly split apart.
+function questionPhrases(q){
+  const words=q.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').split(/\s+/).filter(Boolean);
+  const out=[];
+  for(let i=0;i<words.length-1;i++){
+    // BOTH words must be meaningful (not stopwords, length>2) — a phrase like "first dose" or "term loan" is a
+    // strong signal, but "the loan" or "charged on" is just noise that happens to share one real word with a
+    // genuine phrase, and must not be scored as if it were equally distinctive.
+    if(STOPWORDS.has(words[i]) || STOPWORDS.has(words[i+1]))continue;
+    if(words[i].length<3 || words[i+1].length<3)continue;
+    out.push(words[i]+' '+words[i+1]);
+  }
+  return out;
+}
+
+// True when a genuine regulatory-style phrase from the question ("first dose", "term loan") appears verbatim
+// in the text — this is checked in addition to, not instead of, individual subject-term proximity.
+function phraseHit(text,phrases){
+  const tl=text.toLowerCase();
+  return phrases.some(p=>tl.includes(p));
 }
 
 // True when a number sits genuinely close to the given word — e.g. "not exceeding 20 members" / "members shall not exceed 20" —
@@ -372,6 +491,16 @@ function termDocFreq(term){
   return count;
 }
 
+// Same idea for a whole 2-word phrase: "first dose" is genuinely rare and highly specific to one clause, while
+// "term loan" is generic financial boilerplate that shows up throughout a loan document. Both being present
+// verbatim isn't equally meaningful — the rarer phrase should count for more when candidates are otherwise tied.
+function phraseDocFreq(phrase){
+  const re=new RegExp('\\b'+phrase.split(' ').map(escapeReg).join('\\s+')+'\\b','i');
+  let count=0;
+  for(const p of S.pages){ if(re.test(p.text)) count++; }
+  return count;
+}
+
 // Question wording that signals the user explicitly wants a fuller/longer answer.
 function wantsDetail(q){
   return /\b(detail|details|explain|elaborat|describe|full|complete|in depth|thorough|steps|step by step|why|how does|breakdown|list all|all conditions|everything)\b/i.test(q);
@@ -416,9 +545,11 @@ function extractAnswer(q,hits,detail){
     const terms=subjectTerms(ql);
     const dir=directionRegex(ql);
     const wantsMax=/maximum|max\b/i.test(ql);
+    const phrases=questionPhrases(ql);
     // Rarer terms across the library are more specific to this question and get more weight than words that
     // appear on almost every page (e.g. "loan" or "SHG" in a loan/SHG document).
     const weight={}; terms.forEach(t=>{ weight[t]=1/(termDocFreq(t)||1); });
+    const phraseWeight={}; phrases.forEach(p=>{ phraseWeight[p]=1/(phraseDocFreq(p)||1); });
     function rank(s){
       const body=stripSectionPrefix(s); // ignore leading clause numbers like "3.3 " when checking for a real figure
       const matched=terms.filter(t=>nearNumber(body,escapeReg(t)+'s?'));
@@ -427,11 +558,17 @@ function extractAnswer(q,hits,detail){
       // completely different question just because both words appear somewhere in one long paragraph.
       const dirHit=(dir && matched.some(t=>directionNear(body,t,dir)))?1:0;
       const rangeHit=(wantsMax && rangeNear(body,ql))?1:0;
-      return {count:matched.length, bonus:dirHit+rangeHit, w:matched.reduce((a,t)=>a+weight[t],0)};
+      // An exact multi-word phrase from the question ("first dose", "term loan") appearing verbatim in the
+      // sentence is an additional signal on top of term-proximity — it never substitutes for an actual number
+      // being present near a matched term. It's weighted by rarity (folded into `w`, not `bonus`) so a genuinely
+      // rare, specific phrase ("first dose") outweighs a generic one that happens to also match ("term loan").
+      const matchedPhrases=matched.length>0 ? phrases.filter(p=>body.toLowerCase().includes(p)) : [];
+      const phraseW=matchedPhrases.reduce((a,p)=>a+2*(phraseWeight[p]||0),0); // phrase rarity counts double a single term's
+      return {count:matched.length, bonus:dirHit+rangeHit, w:matched.reduce((a,t)=>a+weight[t],0)+phraseW};
     }
-    // A genuine direction/range match (max vs min wording actually attached to the right term) is the strongest
-    // relevance signal and is ranked first. Term-count is the next tiebreaker (more matched terms = more
-    // confidently on-topic), and rarity-weight only breaks remaining ties between equal counts.
+    // A genuine direction/range match is the strongest relevance signal and is ranked first. Term-count
+    // is the next tiebreaker (more matched terms = more confidently on-topic), and combined rarity-weight
+    // (terms + phrases) breaks remaining ties between equal counts.
     let numeric=candidates
       .map(c=>({...c,_r:rank(c.s)}))
       .filter(c=>c._r.count>0)
@@ -754,5 +891,135 @@ async function restoreSavedData(){
   $('autoSpeak').checked=localStorage.getItem(AUTOSPEAK_KEY)==='1';
   $('status').textContent=restored?'Restored saved Knowledge Library. No re-upload required.':'Ready. Add documents to the permanent library.';
 }
+// ---- Financial Ratio Calculator (pure local arithmetic — no AI, no document extraction involved) ----
+
+function num(id){
+  const raw=($(id)?.value||'').replace(/,/g,'').trim();
+  if(raw==='')return NaN;
+  const v=parseFloat(raw);
+  return isFinite(v)?v:NaN;
+}
+function fmtNum(n,dec){
+  if(!isFinite(n))return '—';
+  return n.toLocaleString('en-IN',{maximumFractionDigits:dec===undefined?2:dec,minimumFractionDigits:0});
+}
+function fmtPct(n){ return isFinite(n)? n.toFixed(2)+'%' : '—'; }
+function ratioRow(label,value,formula){
+  return `<tr><td>${esc(label)}<span class="rformula">${esc(formula)}</span></td><td>${value}</td></tr>`;
+}
+function sectionRow(title){
+  return `<tr><td colspan="2" style="font-weight:900;color:var(--b);padding-top:16px;border-bottom:2px solid var(--line)">${esc(title)}</td></tr>`;
+}
+
+$('rmFS').onclick=()=>{
+  $('rmFS').classList.add('active');$('rmCMA').classList.remove('active');
+  $('fsCard').classList.remove('hidden');$('cmaCard').classList.add('hidden');
+};
+$('rmCMA').onclick=()=>{
+  $('rmCMA').classList.add('active');$('rmFS').classList.remove('active');
+  $('cmaCard').classList.remove('hidden');$('fsCard').classList.add('hidden');
+};
+
+$('calcFS').onclick=()=>{
+  const CA=num('fsCA'),CL=num('fsCL'),INV=num('fsInv'),DEB=num('fsDeb'),CRED=num('fsCred'),
+        TOL=num('fsTOL'),TNW=num('fsTNW'),TA=num('fsTA'),SALES=num('fsSales'),GP=num('fsGP'),
+        EBIT=num('fsEBIT'),NP=num('fsNP'),INT=num('fsInt');
+  const rows=[];
+
+  if(isFinite(CA)&&isFinite(CL)&&CL!==0)
+    rows.push(ratioRow('Current Ratio', fmtNum(CA/CL)+' : 1','Current Assets ÷ Current Liabilities'));
+  if(isFinite(CA)&&isFinite(INV)&&isFinite(CL)&&CL!==0)
+    rows.push(ratioRow('Quick Ratio', fmtNum((CA-INV)/CL)+' : 1','(Current Assets − Inventory) ÷ Current Liabilities'));
+  if(isFinite(CA)&&isFinite(CL))
+    rows.push(ratioRow('Net Working Capital', '₹ '+fmtNum(CA-CL,0),'Current Assets − Current Liabilities'));
+  if(isFinite(TOL)&&isFinite(TNW)&&TNW!==0)
+    rows.push(ratioRow('Debt-Equity Ratio (TOL/TNW)', fmtNum(TOL/TNW)+' : 1','Total Outside Liabilities ÷ Tangible Net Worth'));
+  if(isFinite(GP)&&isFinite(SALES)&&SALES!==0)
+    rows.push(ratioRow('Gross Profit Margin', fmtPct(GP/SALES*100),'Gross Profit ÷ Net Sales × 100'));
+  if(isFinite(NP)&&isFinite(SALES)&&SALES!==0)
+    rows.push(ratioRow('Net Profit Margin', fmtPct(NP/SALES*100),'Net Profit ÷ Net Sales × 100'));
+  if(isFinite(NP)&&isFinite(TNW)&&TNW!==0)
+    rows.push(ratioRow('Return on Net Worth (RONW)', fmtPct(NP/TNW*100),'Net Profit ÷ Tangible Net Worth × 100'));
+  if(isFinite(NP)&&isFinite(TA)&&TA!==0)
+    rows.push(ratioRow('Return on Total Assets (ROA)', fmtPct(NP/TA*100),'Net Profit ÷ Total Assets × 100'));
+  if(isFinite(EBIT)&&isFinite(INT)&&INT!==0)
+    rows.push(ratioRow('Interest Coverage Ratio', fmtNum(EBIT/INT)+' times','EBIT ÷ Interest Expense'));
+  if(isFinite(SALES)&&isFinite(INV)&&INV!==0){
+    const t=SALES/INV;
+    rows.push(ratioRow('Inventory Turnover Ratio', fmtNum(t)+' times','Net Sales ÷ Inventory'));
+    rows.push(ratioRow('Inventory Holding Period', fmtNum(365/t,0)+' days','365 ÷ Inventory Turnover Ratio'));
+  }
+  if(isFinite(SALES)&&isFinite(DEB)&&DEB!==0){
+    const t=SALES/DEB;
+    rows.push(ratioRow('Debtors Turnover Ratio', fmtNum(t)+' times','Net Sales ÷ Trade Receivables'));
+    rows.push(ratioRow('Average Collection Period', fmtNum(365/t,0)+' days','365 ÷ Debtors Turnover Ratio'));
+  }
+  if(isFinite(SALES)&&isFinite(CRED)&&CRED!==0){
+    const t=SALES/CRED;
+    rows.push(ratioRow('Creditors Turnover Ratio', fmtNum(t)+' times','Net Sales ÷ Trade Payables (approx.)'));
+    rows.push(ratioRow('Average Payment Period', fmtNum(365/t,0)+' days','365 ÷ Creditors Turnover Ratio'));
+  }
+  if(isFinite(SALES)&&isFinite(TA)&&TA!==0)
+    rows.push(ratioRow('Asset Turnover Ratio', fmtNum(SALES/TA)+' times','Net Sales ÷ Total Assets'));
+
+  $('fsResults').innerHTML = rows.length
+    ? `<table class="rtable">${rows.join('')}</table><div class="small" style="margin-top:12px">Every figure above is used exactly as entered — double-check units match across all fields.</div>`
+    : `<div class="small" style="margin-top:14px">Enter at least Current Assets and Current Liabilities to see ratios.</div>`;
+};
+
+$('clearFS').onclick=()=>{
+  ['fsCA','fsCL','fsInv','fsDeb','fsCred','fsTOL','fsTNW','fsTA','fsSales','fsGP','fsEBIT','fsNP','fsInt'].forEach(id=>$(id).value='');
+  $('fsResults').innerHTML='';
+};
+
+$('calcCMA').onclick=()=>{
+  const TCA=num('cmaTCA'),OCL=num('cmaOCL'),EXIST=num('cmaExisting');
+  const NP=num('cmaNP'),DEP=num('cmaDep'),INTL=num('cmaIntTL'),INST=num('cmaInst');
+  const rows=[];
+
+  if(isFinite(TCA)&&isFinite(OCL)){
+    const WCG=TCA-OCL;
+    const mpbf1=0.75*WCG;
+    const mpbf2=0.75*TCA-OCL;
+    const margin1=WCG-mpbf1;
+    const margin2=0.25*TCA;
+    const cr1=(OCL+mpbf1)!==0 ? TCA/(OCL+mpbf1) : NaN;
+    const cr2=(OCL+mpbf2)!==0 ? TCA/(OCL+mpbf2) : NaN;
+
+    rows.push(sectionRow('Method I'));
+    rows.push(ratioRow('Working Capital Gap', '₹ '+fmtNum(WCG,0),'Total Current Assets − Other Current Liabilities'));
+    rows.push(ratioRow('Maximum Permissible Bank Finance', '₹ '+fmtNum(mpbf1,0),'75% of Working Capital Gap'));
+    rows.push(ratioRow('Minimum Margin from Long-term Sources', '₹ '+fmtNum(margin1,0),'25% of Working Capital Gap'));
+    rows.push(ratioRow('Resultant Current Ratio', fmtNum(cr1)+' : 1','Total Current Assets ÷ (Other CL + MPBF)'));
+
+    rows.push(sectionRow('Method II'));
+    rows.push(ratioRow('Maximum Permissible Bank Finance', '₹ '+fmtNum(mpbf2,0),'75% of Total Current Assets − Other CL'));
+    rows.push(ratioRow('Minimum Margin from Long-term Sources', '₹ '+fmtNum(margin2,0),'25% of Total Current Assets'));
+    rows.push(ratioRow('Resultant Current Ratio', fmtNum(cr2)+' : 1','Total Current Assets ÷ (Other CL + MPBF)'));
+
+    if(isFinite(EXIST)){
+      rows.push(sectionRow('Comparison with Existing/Proposed Limit'));
+      rows.push(ratioRow('Excess / (Shortfall) — Method I', '₹ '+fmtNum(mpbf1-EXIST,0),'Method I MPBF − Existing/Proposed Limit'));
+      rows.push(ratioRow('Excess / (Shortfall) — Method II', '₹ '+fmtNum(mpbf2-EXIST,0),'Method II MPBF − Existing/Proposed Limit'));
+    }
+  }
+
+  if(isFinite(NP)&&isFinite(DEP)&&isFinite(INTL)&&isFinite(INST)){
+    const denom=INTL+INST;
+    const dscr=denom!==0 ? (NP+DEP+INTL)/denom : NaN;
+    rows.push(sectionRow('Debt Service Coverage Ratio'));
+    rows.push(ratioRow('DSCR', fmtNum(dscr)+' : 1','(Net Profit + Depreciation + Interest on TL) ÷ (Interest on TL + TL Installment)'));
+  }
+
+  $('cmaResults').innerHTML = rows.length
+    ? `<table class="rtable">${rows.join('')}</table><div class="small" style="margin-top:12px">Standard Tandon Committee second-method norms as commonly applied; verify against your bank's specific lending policy, which may vary the margin percentage or excluded items.</div>`
+    : `<div class="small" style="margin-top:14px">Enter Total Current Assets and Other Current Liabilities (or the DSCR fields) to see results.</div>`;
+};
+
+$('clearCMA').onclick=()=>{
+  ['cmaTCA','cmaOCL','cmaExisting','cmaNP','cmaDep','cmaIntTL','cmaInst'].forEach(id=>$(id).value='');
+  $('cmaResults').innerHTML='';
+};
+
 restoreSavedData();
 </script></body></html>
