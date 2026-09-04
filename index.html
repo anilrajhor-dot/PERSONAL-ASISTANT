@@ -668,7 +668,7 @@ QUESTION: ${q}
 EVIDENCE:
 ${ev}`;
   try{
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(key),{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key='+encodeURIComponent(key),{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.05,maxOutputTokens:detail?700:180}})
     });
@@ -721,7 +721,7 @@ async function extractFiguresWithAI(dataUrl){
   const base64=dataUrl.split(',')[1];
   const prompt='You are reading a photographed or scanned page of an Indian company financial statement (Balance Sheet or Profit and Loss). The photo may be skewed, rotated, or have uneven lighting - read it as carefully as a person would. Extract ONLY the CURRENT YEAR figures - the first/leftmost amount column - NOT the prior-year comparative column. Respond in EXACTLY this format, one line per item, nothing else. If an item does not appear on this page, write NOT_FOUND for it. Give plain numeric values only, no currency symbols, no commas, no explanation.\nCURRENT_ASSETS: value or NOT_FOUND\nCURRENT_LIABILITIES: value or NOT_FOUND\nINVENTORIES: value or NOT_FOUND\nTRADE_RECEIVABLES: value or NOT_FOUND\nTRADE_PAYABLES: value or NOT_FOUND\nTOTAL_OUTSIDE_LIABILITIES: value or NOT_FOUND\nTANGIBLE_NET_WORTH: value or NOT_FOUND\nTOTAL_ASSETS: value or NOT_FOUND\nNET_SALES: value or NOT_FOUND\nNET_PROFIT: value or NOT_FOUND\nGROSS_PROFIT: value or NOT_FOUND\nEBIT: value or NOT_FOUND\nINTEREST_EXPENSE: value or NOT_FOUND';
 
-  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(key),{
+  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key='+encodeURIComponent(key),{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:'image/png',data:base64}}]}],generationConfig:{temperature:0,maxOutputTokens:400}})
   });
@@ -738,7 +738,7 @@ async function extractFiguresWithAI(dataUrl){
     throw new Error('Gemini did not return a normal response (reason: '+candidate.finishReason+'). This can happen if the image was flagged by safety filters, or the response was cut off.');
   }
   const raw=candidate?.content?.parts?.map(x=>x.text||'').join('')||'';
-  if(!raw)throw new Error('Gemini returned an empty response for this image. Try again, or check that your API key has access to the gemini-2.0-flash model.');
+  if(!raw)throw new Error('Gemini returned an empty response for this image. Try again, or check that your API key has access to the gemini-3.6-flash model.');
 
   const filled=[];
   Object.keys(AI_FIELD_MAP).forEach(key2=>{
@@ -782,7 +782,7 @@ LIBRARY:
 ${corpus}`;
 
   try{
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(key),{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key='+encodeURIComponent(key),{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:.05,maxOutputTokens:detail?900:300}})
     });
