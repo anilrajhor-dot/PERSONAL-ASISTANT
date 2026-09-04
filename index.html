@@ -60,6 +60,8 @@ try {
   window.pdfReady=true;
 } catch(e) { window.pdfReady=false; console.warn('PDF engine unavailable',e); }
 const S={docs:[],chunks:[],pages:[],blobs:{}};
+const IMAGE_RENDER_GEN={}; // per-document render generation counter — guards against page-image render race conditions
+const LAST_PAGE_IMAGE={}; // per-document base64 PNG of the most recently rendered page, used by the AI-extract button
 const $=x=>document.getElementById(x);
 const K='rbi330';
 
@@ -706,6 +708,42 @@ function parseGeminiStructured(raw){
   return {text, used:null};
 }
 
+// Maps a structured AI response line ("CURRENT_ASSETS: 12479183") onto the matching Ratios form field.
+const AI_FIELD_MAP={
+  CURRENT_ASSETS:'fsCA',CURRENT_LIABILITIES:'fsCL',INVENTORIES:'fsInv',TRADE_RECEIVABLES:'fsDeb',
+  TRADE_PAYABLES:'fsCred',TOTAL_OUTSIDE_LIABILITIES:'fsTOL',TANGIBLE_NET_WORTH:'fsTNW',TOTAL_ASSETS:'fsTA',
+  NET_SALES:'fsSales',NET_PROFIT:'fsNP',GROSS_PROFIT:'fsGP',EBIT:'fsEBIT',INTEREST_EXPENSE:'fsInt'
+};
+
+async function extractFiguresWithAI(dataUrl){
+  const key=loadKey();
+  if(!key)throw new Error('No Gemini key configured.');
+  const base64=dataUrl.split(',')[1];
+  const prompt='You are reading a photographed or scanned page of an Indian company financial statement (Balance Sheet or Profit and Loss). The photo may be skewed, rotated, or have uneven lighting - read it as carefully as a person would. Extract ONLY the CURRENT YEAR figures - the first/leftmost amount column - NOT the prior-year comparative column. Respond in EXACTLY this format, one line per item, nothing else. If an item does not appear on this page, write NOT_FOUND for it. Give plain numeric values only, no currency symbols, no commas, no explanation.\nCURRENT_ASSETS: value or NOT_FOUND\nCURRENT_LIABILITIES: value or NOT_FOUND\nINVENTORIES: value or NOT_FOUND\nTRADE_RECEIVABLES: value or NOT_FOUND\nTRADE_PAYABLES: value or NOT_FOUND\nTOTAL_OUTSIDE_LIABILITIES: value or NOT_FOUND\nTANGIBLE_NET_WORTH: value or NOT_FOUND\nTOTAL_ASSETS: value or NOT_FOUND\nNET_SALES: value or NOT_FOUND\nNET_PROFIT: value or NOT_FOUND\nGROSS_PROFIT: value or NOT_FOUND\nEBIT: value or NOT_FOUND\nINTEREST_EXPENSE: value or NOT_FOUND';
+
+  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(key),{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:'image/png',data:base64}}]}],generationConfig:{temperature:0,maxOutputTokens:400}})
+  });
+  const j=await r.json();
+  const raw=j?.candidates?.[0]?.content?.parts?.map(x=>x.text||'').join('')||'';
+  if(!raw)throw new Error('No response from AI - check your Gemini key in Settings.');
+
+  const filled=[];
+  Object.keys(AI_FIELD_MAP).forEach(key2=>{
+    const re=new RegExp(key2+'\\s*:\\s*([\\-0-9.,]+)','i');
+    const m=raw.match(re);
+    if(m && !/NOT_FOUND/i.test(m[0])){
+      const val=parseFloat(m[1].replace(/,/g,''));
+      if(isFinite(val)){
+        $(AI_FIELD_MAP[key2]).value=val;
+        filled.push(key2.replace(/_/g,' ')+': '+val.toLocaleString('en-IN'));
+      }
+    }
+  });
+  return filled;
+}
+
 async function geminiFull(q,detail){
   const key=loadKey();
   if(!key || !S.pages.length)return null;
@@ -873,6 +911,32 @@ async function shareOrDownloadFile(blob,filename){
 }
 
 $('docs').addEventListener('click',async(e)=>{
+  const aiBtn=e.target.closest('.aiExtractBtn');
+  if(aiBtn){
+    const idx=parseInt(aiBtn.getAttribute('data-idx'),10);
+    const pageNum=aiBtn.getAttribute('data-page');
+    const resultEl=$('aiExtract'+idx);
+    const dataUrl=LAST_PAGE_IMAGE[idx];
+    const key=loadKey();
+    if(!key){
+      resultEl.innerHTML='<div class="small">⚠️ This needs a Gemini API key (Settings → paste key → Save) — it uses AI vision to read the page image, which handles skewed/photographed pages far better than the local OCR engine. Nothing else in the app requires a key; this is only for hard-to-read scanned pages like this one.</div>';
+      return;
+    }
+    if(!dataUrl){resultEl.innerHTML='<div class="small">Render the page image first.</div>';return;}
+    aiBtn.disabled=true;
+    resultEl.innerHTML='<div class="small">Reading page '+pageNum+' with AI…</div>';
+    try{
+      const filled=await extractFiguresWithAI(dataUrl);
+      resultEl.innerHTML = filled.length
+        ? `<div class="autofillbox"><b>AI read ${filled.length} figure(s) from this page and filled the Ratios form:</b><br>${filled.join('<br>')}<br><br><i>Open the Ratios tab and check each figure against the image above before calculating — AI vision reading is much more reliable than the local OCR on this kind of page, but still worth a quick check.</i></div>`
+        : '<div class="small">AI could not confidently read any recognised financial figures from this page.</div>';
+    }catch(err){
+      resultEl.innerHTML='<div class="small">AI extraction failed: '+esc(err.message||String(err))+'</div>';
+    }finally{
+      aiBtn.disabled=false;
+    }
+    return;
+  }
   const imageBtn=e.target.closest('.docImageBtn');
   if(imageBtn){
     const idx=parseInt(imageBtn.getAttribute('data-idx'),10);
@@ -888,6 +952,12 @@ $('docs').addEventListener('click',async(e)=>{
     const pageInput=$('pageNum'+idx);
     const pageNum=Math.max(1,Math.min(doc.pages,parseInt(pageInput.value,10)||1));
     pageInput.value=pageNum;
+    // Race-condition guard: if this button is tapped again before a previous render finishes (rendering at
+    // high resolution takes a moment), only the LATEST request is allowed to update the display — otherwise
+    // an earlier, slower-finishing request could overwrite a newer one and silently show the wrong page.
+    IMAGE_RENDER_GEN[idx]=(IMAGE_RENDER_GEN[idx]||0)+1;
+    const myGen=IMAGE_RENDER_GEN[idx];
+    imageBtn.disabled=true;
     box.innerHTML='<div class="small">Rendering page '+pageNum+'…</div>';
     box.classList.remove('hidden');
     try{
@@ -904,9 +974,13 @@ $('docs').addEventListener('click',async(e)=>{
       const ctx=canvas.getContext('2d');
       await pg.render({canvasContext:ctx,viewport}).promise;
       const dataUrl=canvas.toDataURL('image/png');
-      box.innerHTML=`<div class="small" style="margin-bottom:8px">${esc(doc.name)} — page ${pageNum}. Pinch to zoom in and read the figures directly.</div><img src="${dataUrl}" alt="Page ${pageNum}">`;
+      if(myGen!==IMAGE_RENDER_GEN[idx])return; // a newer request has since started — discard this stale result
+      LAST_PAGE_IMAGE[idx]=dataUrl;
+      box.innerHTML=`<div class="small" style="margin-bottom:8px">${esc(doc.name)} — page ${pageNum}. Pinch to zoom in and read the figures directly.</div><img src="${dataUrl}" alt="Page ${pageNum}"><div class="row" style="margin-top:10px"><button class="aiExtractBtn" data-idx="${idx}" data-page="${pageNum}" type="button">🤖 Extract figures with AI</button></div><div id="aiExtract${idx}"></div>`;
     }catch(err){
-      box.innerHTML='<div class="small">Could not render this page: '+esc(err.message||String(err))+'</div>';
+      if(myGen===IMAGE_RENDER_GEN[idx])box.innerHTML='<div class="small">Could not render this page: '+esc(err.message||String(err))+'</div>';
+    }finally{
+      imageBtn.disabled=false;
     }
     return;
   }
