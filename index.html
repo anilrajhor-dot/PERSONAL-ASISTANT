@@ -16,7 +16,7 @@
 <div><label>EBIT (Operating Profit)</label><input type="number" id="fsEBIT"></div>
 <div><label>Net Profit (PAT)</label><input type="number" id="fsNP"></div>
 <div><label>Interest Expense</label><input type="number" id="fsInt"></div>
-</div><div class="row"><button id="autofillFS" type="button">⬇ Auto-fill from Knowledge Library</button></div><div id="fsAutofillNote"></div><div class="row"><button class="primary" id="calcFS">Calculate Ratios</button><button id="clearFS" type="button">Clear</button></div><div id="fsResults"></div></div>
+</div><div class="row"><button id="autofillFS" type="button">⬇ Auto-fill from Knowledge Library</button></div><div class="small" style="margin-top:6px">This reads local text/OCR from your documents — works well for clean PDFs and Excel, but can misread scanned or skewed pages. For a document that's hard to read this way, go to <b>Knowledge Library → View page as image → 🤖 Extract figures with AI</b> instead, which reads the page as a picture and is far more reliable for scans.</div><div id="fsAutofillNote"></div><div class="row"><button class="primary" id="calcFS">Calculate Ratios</button><button id="clearFS" type="button">Clear</button></div><div id="fsResults"></div></div>
 
 <div class="card hidden" id="cmaCard"><h3>Working Capital Assessment — MPBF (Tandon Committee)</h3><div class="small">Standard second-method lending norm calculation as commonly applied by banks for working capital assessment.</div><div class="fgrid">
 <div><label>Total Current Assets</label><input type="number" id="cmaTCA" placeholder="e.g. 6000000"></div>
@@ -28,7 +28,7 @@
 <div><label>Depreciation</label><input type="number" id="cmaDep"></div>
 <div><label>Interest on Term Loan</label><input type="number" id="cmaIntTL"></div>
 <div><label>Term Loan Installment (Principal)</label><input type="number" id="cmaInst"></div>
-</div><div class="row"><button id="autofillCMA" type="button">⬇ Auto-fill from Knowledge Library</button></div><div id="cmaAutofillNote"></div><div class="row"><button class="primary" id="calcCMA">Calculate MPBF &amp; DSCR</button><button id="clearCMA" type="button">Clear</button></div><div id="cmaResults"></div></div>
+</div><div class="row"><button id="autofillCMA" type="button">⬇ Auto-fill from Knowledge Library</button></div><div class="small" style="margin-top:6px">This reads local text/OCR from your documents — for a document that's hard to read this way (scanned/skewed pages), go to <b>Knowledge Library → View page as image → 🤖 Extract figures with AI</b> instead.</div><div id="cmaAutofillNote"></div><div class="row"><button class="primary" id="calcCMA">Calculate MPBF &amp; DSCR</button><button id="clearCMA" type="button">Clear</button></div><div id="cmaResults"></div></div>
 
 <div class="card" id="reportCard"><h3>Consolidated CMA Report</h3><div class="small">Pulls together whatever figures are currently entered above (Financial Statement + CMA/MPBF fields) into one CMA-style summary — Operating Statement, Balance Sheet Analysis, and Working Capital Assessment. Fill in the fields above first, in either or both tabs, then build the report.</div><div class="row"><button class="primary" id="buildCMA" type="button">🏗️ Build CMA Report</button><button id="printCMA" type="button" class="hidden">🖨️ Print / Save as PDF</button></div><div id="cmaReport"></div></div>
 </section>
@@ -726,8 +726,19 @@ async function extractFiguresWithAI(dataUrl){
     body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:'image/png',data:base64}}]}],generationConfig:{temperature:0,maxOutputTokens:400}})
   });
   const j=await r.json();
-  const raw=j?.candidates?.[0]?.content?.parts?.map(x=>x.text||'').join('')||'';
-  if(!raw)throw new Error('No response from AI - check your Gemini key in Settings.');
+  // Surface the ACTUAL reason for failure instead of a generic message — a bad/expired key, exceeded quota,
+  // a blocked response (safety filters), and a genuinely empty reply all need different fixes on the user's
+  // side, and a vague "check your key" message makes all of them look identical.
+  if(!r.ok || j.error){
+    const apiMsg=j?.error?.message || (r.status+' '+r.statusText);
+    throw new Error('Gemini API error: '+apiMsg);
+  }
+  const candidate=j?.candidates?.[0];
+  if(candidate && candidate.finishReason && candidate.finishReason!=='STOP'){
+    throw new Error('Gemini did not return a normal response (reason: '+candidate.finishReason+'). This can happen if the image was flagged by safety filters, or the response was cut off.');
+  }
+  const raw=candidate?.content?.parts?.map(x=>x.text||'').join('')||'';
+  if(!raw)throw new Error('Gemini returned an empty response for this image. Try again, or check that your API key has access to the gemini-2.0-flash model.');
 
   const filled=[];
   Object.keys(AI_FIELD_MAP).forEach(key2=>{
