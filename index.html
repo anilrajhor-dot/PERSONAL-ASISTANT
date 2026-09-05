@@ -432,7 +432,7 @@ function retrieve(q){
     if(hits[0])score+=hits[0].score;
 
     return {...p,score,hits};
-  }).filter(p=>p.score>=5).sort((a,b)=>b.score-a.score).slice(0,18);
+  }).filter(p=>p.score>=5).sort((a,b)=>b.score-a.score).slice(0,40);
 }
 
 // Extracts meaningful 2-word phrases from the question in their original order (e.g. "first dose", "term loan")
@@ -764,27 +764,45 @@ async function extractFiguresWithAI(dataUrl){
 async function geminiFull(q,detail){
   const key=loadKey();
   if(!key || !S.pages.length)return null;
-  const {text:corpus, truncated}=buildFullCorpusText();
-  if(!corpus)return null;
 
   const lengthRule=detail
     ? 'The question asks for detail/explanation, so give a complete answer: the direct fact first, then every relevant condition, exception, threshold and date.'
     : 'Be to the point: answer in ONE short sentence with only the key fact (number/rate/rule) and its single most essential condition. Do not list extra exceptions, background or elaboration unless the question explicitly asks for them.';
 
-  const prompt=`You are a strict regulatory/financial document assistant. You have the entire indexed library of
-documents below — read across ALL of them and cross-reference where needed before answering one question.
+  // Relevance-first: search the ENTIRE library (across every document, regardless of upload order) using the
+  // same local scoring already used for exact-match extraction, and send the AI only the most relevant pages -
+  // not the whole library indiscriminately. This matters a lot once several circulars from different
+  // departments are loaded: (1) it stops later-uploaded documents being silently truncated out if the library
+  // is large, since selection is by relevance, not upload order, and (2) it avoids mixing in unrelated
+  // departments' clauses as noise, which can otherwise blend or confuse similarly-worded rules across circulars.
+  const relevant=retrieve(q);
+  let corpus, truncated=false, usedRelevance=relevant.length>0;
+
+  if(relevant.length){
+    const parts=relevant.map(p=>`[${p.doc} \u2014 Page ${p.page}]\n${p.text}`);
+    corpus=parts.join('\n\n');
+    if(corpus.length>FULL_CORPUS_CHAR_BUDGET){ corpus=corpus.slice(0,FULL_CORPUS_CHAR_BUDGET); truncated=true; }
+  }else{
+    // Local scoring found nothing at all relevant - fall back to a raw, budget-capped dump of the whole
+    // library as a last resort, in case the keyword scorer missed wording a full read would still catch.
+    const built=buildFullCorpusText();
+    corpus=built.text; truncated=built.truncated;
+  }
+  if(!corpus)return null;
+
+  const prompt=`You are a strict regulatory/financial document assistant. Below are the ${usedRelevance?'most relevant pages found across':'contents of'} your indexed library - read across all of them and cross-reference where needed before answering one question. ${usedRelevance?'These pages were pre-selected by relevance to the question below; if the answer genuinely is not among them, say so rather than guessing.':''}
 Answer ONLY from the material given. Do not use outside knowledge, and do not guess at figures.
 Preserve every qualifier, exception, threshold, amount, rate and date that you include in the answer.
 ${lengthRule}
 If the material does not establish the answer, respond with EXACTLY:
 ANSWER: Not found in supplied material.
-Otherwise respond in EXACTLY this format and nothing else — no extra commentary before or after:
+Otherwise respond in EXACTLY this format and nothing else - no extra commentary before or after:
 ANSWER: <the answer text>
 SOURCE_DOC: <the exact document name as given in the brackets below>
 SOURCE_PAGE: <the page number>
-${truncated?'NOTE: this library was too large to send in full; only part of it is included below. If you cannot establish the answer from what is given, say "Not found" rather than guessing.\n':''}
+${truncated?'NOTE: this material was too large to send in full; only part of it is included below. If you cannot establish the answer from what is given, say "Not found" rather than guessing.\n':''}
 QUESTION: ${q}
-LIBRARY:
+MATERIAL:
 ${corpus}`;
 
   try{
