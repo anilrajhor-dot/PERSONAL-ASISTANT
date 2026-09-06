@@ -235,8 +235,21 @@ async function ocrPage(pg){
   }catch(e){return '';}
 }
 
+// Removes any existing library entry for this exact document name before a fresh upload adds its replacement.
+// Without this, re-uploading a document (e.g. an amended/corrected circular) would leave the OLD version's
+// pages sitting in the library alongside the new one — with no visible indication that happened, and no way
+// for retrieval to know which copy is current. This makes "re-upload to fix/update a document" behave the
+// way a person would expect: the new version replaces the old, it doesn't duplicate it.
+function removeDocByName(name){
+  S.docs=S.docs.filter(d=>d.name!==name);
+  S.pages=S.pages.filter(p=>p.doc!==name);
+  S.chunks=S.chunks.filter(c=>c.doc!==name);
+  delete S.blobs[name];
+}
+
 async function readPDF(file){
   if(!pdfjsLib) throw new Error('PDF engine could not be loaded. Please open the app from its HTTPS web address.');
+  removeDocByName(file.name);
   S.blobs[file.name]=file;
   const data=new Uint8Array(await file.arrayBuffer());
   const pdf=await pdfjsLib.getDocument({data}).promise;
@@ -263,6 +276,7 @@ async function readPDF(file){
 }
 
 async function readText(file){
+  removeDocByName(file.name);
   S.blobs[file.name]=file;
   const t=norm(await file.text());
   S.docs.push({name:file.name,pages:1,ocr:0});
@@ -275,6 +289,7 @@ async function readText(file){
 // spreadsheet data (loan schedules, rate tables, member registers, etc.).
 async function readXLSX(file){
   if(typeof XLSX==='undefined')throw new Error('Spreadsheet engine could not be loaded. Please open the app from its HTTPS web address.');
+  removeDocByName(file.name);
   S.blobs[file.name]=file;
   const data=await file.arrayBuffer();
   const wb=XLSX.read(data,{type:'array'});
@@ -294,6 +309,7 @@ async function readXLSX(file){
 // file itself, unlike a PDF), so the whole document is stored as a single page.
 async function readDOCX(file){
   if(typeof mammoth==='undefined')throw new Error('Word document engine could not be loaded. Please open the app from its HTTPS web address.');
+  removeDocByName(file.name);
   S.blobs[file.name]=file;
   const arrayBuffer=await file.arrayBuffer();
   const result=await mammoth.extractRawText({arrayBuffer});
@@ -308,6 +324,7 @@ async function readDOCX(file){
 // so slide 7 shows up in Source/Evidence exactly like page 7 of a PDF would.
 async function readPPTX(file){
   if(typeof JSZip==='undefined')throw new Error('Presentation engine could not be loaded. Please open the app from its HTTPS web address.');
+  removeDocByName(file.name);
   S.blobs[file.name]=file;
   const zip=await JSZip.loadAsync(await file.arrayBuffer());
   const slideFiles=Object.keys(zip.files)
@@ -338,8 +355,10 @@ async function persistLibrary(){
 $('files').onchange=async e=>{
   const files=Array.from(e.target.files||[]);if(!files.length)return;
   $('bar').style.width='0%';
+  const replaced=[];
   for(const f of files){
     try{
+      if(S.docs.some(d=>d.name===f.name))replaced.push(f.name);
       $('ls').textContent=`Reading ${f.name}…`;
       const n=f.name.toLowerCase();
       if(n.endsWith('.pdf'))await readPDF(f);
@@ -351,7 +370,8 @@ $('files').onchange=async e=>{
   }
   const ok=await savePermanent();render();
   $('bar').style.width='100%';
-  $('ls').textContent=ok?`✓ SAVED PERMANENTLY — ${S.docs.length} document(s), ${S.pages.length} page(s).`:'Read complete, but permanent save failed.';
+  const replacedNote=replaced.length?` (replaced existing: ${replaced.join(', ')})`:'';
+  $('ls').textContent=ok?`✓ SAVED PERMANENTLY — ${S.docs.length} document(s), ${S.pages.length} page(s).${replacedNote}`:'Read complete, but permanent save failed.';
   updateDiagnostics();$('files').value='';
 };
 
